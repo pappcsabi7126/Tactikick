@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f7f5" />
+    <title>tactikick</title>
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem('coachapp-theme') === 'dark' ? 'dark' : 'light';
+          var root = document.documentElement;
+          root.setAttribute('data-coachapp-theme', theme);
+          root.style.backgroundColor = theme === 'dark' ? '#07090d' : '#f5f7f5';
+          root.style.colorScheme = theme;
+          var metaTheme = document.querySelector('meta[name="theme-color"]');
+          if (metaTheme) metaTheme.setAttribute('content', theme === 'dark' ? '#07090d' : '#f5f7f5');
+            } catch (e) {
+          document.documentElement.setAttribute('data-coachapp-theme', 'light');
+          document.documentElement.style.backgroundColor = '#f5f7f5';
+          document.documentElement.style.colorScheme = 'light';
+          var metaThemeFallback = document.querySelector('meta[name="theme-color"]');
+          if (metaThemeFallback) metaThemeFallback.setAttribute('content', '#f5f7f5');
+        }
+      })();
+    </script>
+    <style id="coachapp-boot-style">
+      html { background: #07090d; color-scheme: dark; }
+      html[data-coachapp-theme="light"] { background: #f5f7f5; color-scheme: light; }
+      html[data-coachapp-theme="dark"] { background: #07090d; color-scheme: dark; }
+      body { margin: 0; min-width: 320px; min-height: 100vh; background: #f5f7f5; }
+      html[data-coachapp-theme="light"] body { background: #f5f7f5; }
+      html[data-coachapp-theme="dark"] body { background: #07090d; }
+      #root { visibility: hidden; }
+      html[data-coachapp-ready="true"] #root { visibility: visible; }
+      #coachapp-boot-screen { position: fixed; inset: 0; z-index: 2147483647; background: #f5f7f5; }
+      html[data-coachapp-theme="light"] #coachapp-boot-screen { background: #f5f7f5; }
+      html[data-coachapp-theme="dark"] #coachapp-boot-screen { background: #07090d; }
+      html[data-coachapp-ready="true"] #coachapp-boot-screen { display: none; }
+      html:not([data-coachapp-ready="true"]) .app { transition: none !important; }
+    </style>
+  </head>
+  <body>
+    <div id="coachapp-boot-screen" aria-hidden="true"></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

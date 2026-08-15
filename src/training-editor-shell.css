@@ -1,0 +1,198 @@
+.training-editor-backdrop {
+  position: fixed !important;
+  inset: 0;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: rgba(3, 5, 9, .78);
+  backdrop-filter: blur(8px);
+}
+
+.training-editor-modal {
+  position: relative !important;
+  width: min(1050px, 100%);
+  max-height: calc(100vh - 48px);
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden;
+  border: 1px solid #292f39;
+  border-radius: 17px;
+  background: #0d1016 !important;
+  color: #dfe3e9;
+  box-shadow: 0 30px 100px rgba(0,0,0,.5);
+}
+
+.light-theme .training-editor-modal {
+  border-color: #dfe5df;
+  background: #fbfcfb;
+  color: #242a31;
+}
+
+.training-editor-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid #242a34;
+}
+
+.light-theme .training-editor-header {
+  border-bottom-color: #e5e9e5;
+}
+
+.training-editor-eyebrow {
+  display: block;
+  color: #7c8592;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.training-editor-header h2 {
+  margin: 4px 0 3px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  letter-spacing: -.035em;
+}
+
+.training-editor-header p {
+  margin: 0;
+  color: #69727f;
+  font-size: 10px;
+}
+
+.training-editor-close {
+  width: 31px;
+  height: 31px;
+  border: 1px solid #2b313c;
+  border-radius: 8px;
+  background: transparent;
+  color: #7c8592;
+  cursor: pointer;
+  font: inherit;
+  font-size: 19px;
+}
+
+.training-editor-close:hover {
+  border-color: rgba(181,44,255,.5);
+  color: #c45aff;
+}
+
+.training-editor-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 17px 22px 20px;
+}
+
+.training-editor-basic {
+  margin-bottom: 18px;
+  padding: 13px;
+  border: 1px solid #252b35;
+  border-radius: 11px;
+  background: rgba(255,255,255,.014);
+}
+
+.light-theme .training-editor-basic {
+  border-color: #e2e7e2;
+  background: #fff;
+}
+
+.training-editor-field {
+  min-width: 0;
+}
+
+.training-editor-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #747e8c;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.training-editor-field input {
+  width: 100%;
+  height: 37px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid #2a303a;
+  border-radius: 8px;
+  outline: none;
+  background: #0b0e14;
+  color: #dfe3e9;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.light-theme .training-editor-field input {
+  border-color: #dfe5df;
+  background: #fafcfa;
+  color: #242a31;
+}
+
+.training-editor-field input:focus {
+  border-color: rgba(181,44,255,.65);
+  box-shadow: 0 0 0 3px rgba(181,44,255,.07);
+}
+
+.training-editor-basic-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 9px;
+  margin-top: 11px;
+}
+
+.training-editor-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #242a34;
+  background: #0e1117;
+}
+
+.light-theme .training-editor-footer {
+  border-top-color: #e5e9e5;
+  background: #fff;
+}
+
+@media (max-width: 650px) {
+  .training-editor-backdrop {
+    padding: 10px;
+  }
+
+  .training-editor-modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .training-editor-scroll {
+    padding: 14px;
+  }
+
+  .training-editor-basic-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Final isolation from the old player modal system */
+.training-editor-backdrop,
+.training-editor-backdrop * {
+  box-sizing: border-box;
+}
+
+.light-theme .training-editor-backdrop .training-editor-modal {
+  background: #ffffff !important;
+  border-color: #dfe5df !important;
+  color: #242a31 !important;
+}
+
+.dark-theme .training-editor-backdrop .training-editor-modal {
+  background: #0d1016 !important;
+  border-color: #292f39 !important;
+  color: #dfe3e9 !important;
+}

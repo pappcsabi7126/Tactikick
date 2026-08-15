@@ -1,0 +1,510 @@
+/* =========================================================
+   TACTIKICK — COHESIVE DESIGN SYSTEM REFRESH
+   Shared visual language for every surface in light + dark mode.
+   No layout logic is changed here; this file only refines presentation.
+========================================================= */
+
+.app {
+  --accent: #9b4dff;
+  --accent-strong: #7c3aed;
+  --accent-pink: #d946ef;
+  --accent-soft: rgba(155, 77, 255, .10);
+  --accent-border: rgba(155, 77, 255, .24);
+  --success: #18b66a;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-card: 0 12px 36px rgba(16, 24, 40, .07);
+  --shadow-float: 0 22px 70px rgba(16, 24, 40, .11);
+}
+
+.dark-theme {
+  --surface-0: #080a10;
+  --surface-1: #0d1017;
+  --surface-2: #121621;
+  --surface-3: #171c28;
+  --line: #242a37;
+  --line-soft: rgba(255,255,255,.065);
+  --text-strong: #f5f6fa;
+  --text: #c5cad4;
+  --text-muted: #7f8796;
+  --text-faint: #596170;
+  --shadow-card: 0 16px 44px rgba(0,0,0,.20);
+  --shadow-float: 0 28px 90px rgba(0,0,0,.36);
+  background:
+    radial-gradient(circle at 72% -8%, rgba(155,77,255,.12), transparent 30%),
+    radial-gradient(circle at 0% 65%, rgba(124,58,237,.055), transparent 26%),
+    var(--surface-0);
+}
+
+.light-theme {
+  --surface-0: #f6f7fb;
+  --surface-1: #ffffff;
+  --surface-2: #f8f8fc;
+  --surface-3: #f2f1f8;
+  --line: #e3e5ee;
+  --line-soft: #ececf3;
+  --text-strong: #171923;
+  --text: #414655;
+  --text-muted: #788091;
+  --text-faint: #a0a6b2;
+  --shadow-card: 0 10px 32px rgba(30, 35, 60, .055);
+  --shadow-float: 0 22px 70px rgba(30, 35, 60, .10);
+  background:
+    radial-gradient(circle at 78% -10%, rgba(155,77,255,.065), transparent 28%),
+    radial-gradient(circle at 0% 70%, rgba(217,70,239,.035), transparent 24%),
+    var(--surface-0);
+}
+
+/* Sidebar / navigation */
+.dark-theme .sidebar { background: rgba(10,12,18,.90); border-right-color: var(--line); }
+.light-theme .sidebar { background: rgba(255,255,255,.90); border-right-color: var(--line); box-shadow: 8px 0 30px rgba(30,35,60,.025); }
+
+.dark-theme .brand-logo,
+.light-theme .brand-logo {
+  background: linear-gradient(135deg, #7c3aed, #c026ff 58%, #e879f9);
+  box-shadow: 0 8px 24px rgba(139,44,255,.22);
+}
+.dark-theme .brand-name,
+.light-theme .brand-name { color: var(--text-strong); }
+.dark-theme .brand-name span,
+.light-theme .brand-name span { color: #c026ff; }
+.dark-theme .brand-tagline,
+.light-theme .brand-tagline { color: var(--text-faint); }
+
+.dark-theme .nav-item,
+.light-theme .nav-item { color: var(--text-muted); }
+.dark-theme .nav-item:hover,
+.light-theme .nav-item:hover { background: var(--accent-soft); color: var(--text-strong); }
+.dark-theme .nav-item.active,
+.light-theme .nav-item.active {
+  color: var(--text-strong);
+  background: linear-gradient(90deg, rgba(155,77,255,.14), rgba(155,77,255,.045));
+  border-color: var(--accent-border);
+  box-shadow: inset 3px 0 0 var(--accent), 0 8px 24px rgba(124,58,237,.055);
+}
+.dark-theme .nav-icon,
+.light-theme .nav-icon { color: var(--text-faint); }
+.dark-theme .nav-item.active .nav-icon,
+.light-theme .nav-item.active .nav-icon { color: var(--accent); }
+
+.dark-theme .sidebar-divider,
+.light-theme .sidebar-divider,
+.dark-theme .sidebar-user,
+.light-theme .sidebar-user { border-color: var(--line); }
+
+.light-theme .avatar,
+.dark-theme .avatar { background: linear-gradient(135deg, #7c3aed, #c026ff); }
+
+/* Topbar */
+.dark-theme .topbar { background: rgba(8,10,16,.76); border-bottom-color: var(--line-soft); }
+.light-theme .topbar { background: rgba(246,247,251,.78); border-bottom-color: var(--line); }
+.dark-theme .search-button,
+.light-theme .search-button,
+.dark-theme .theme-toggle,
+.light-theme .theme-toggle,
+.dark-theme .top-icon,
+.light-theme .top-icon {
+  background: var(--surface-1);
+  border-color: var(--line);
+  color: var(--text-muted);
+}
+.dark-theme .theme-toggle,
+.light-theme .theme-toggle { color: var(--accent); }
+
+/* Page rhythm */
+.page,
+.team-page { padding-top: 38px; }
+.hero-header,
+.team-page-header { margin-bottom: 24px; }
+.hero-header h1,
+.team-page-header h1 { color: var(--text-strong); }
+.dark-theme .hero-header p,
+.light-theme .hero-header p,
+.dark-theme .team-page-header p,
+.light-theme .team-page-header p { color: var(--text-muted); }
+.dark-theme .eyebrow,
+.light-theme .eyebrow { color: var(--text-faint); }
+
+/* Buttons */
+.neon-button {
+  background: linear-gradient(135deg, #7c3aed, #a855f7 55%, #d946ef);
+  border-color: rgba(168,85,247,.42);
+  box-shadow: 0 10px 26px rgba(124,58,237,.18);
+  border-radius: 11px;
+}
+.neon-button:hover { box-shadow: 0 14px 34px rgba(124,58,237,.27); }
+.dark-theme .secondary-button,
+.light-theme .secondary-button {
+  background: var(--surface-1);
+  border-color: var(--line);
+  color: var(--text);
+  border-radius: 11px;
+}
+.dark-theme .secondary-button:hover,
+.light-theme .secondary-button:hover { background: var(--surface-2); border-color: var(--accent-border); color: var(--text-strong); }
+
+/* Generic cards / dashboard */
+.dark-theme .stat,
+.light-theme .stat,
+.dark-theme .calendar-card,
+.light-theme .calendar-card,
+.dark-theme .calendar-side-card,
+.light-theme .calendar-side-card,
+.dark-theme .settings-card,
+.light-theme .settings-card,
+.dark-theme .profile-stat,
+.light-theme .profile-stat,
+.dark-theme .training-overview-card,
+.light-theme .training-overview-card {
+  border-color: var(--line);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-card);
+}
+.dark-theme .stat,
+.dark-theme .calendar-card,
+.dark-theme .calendar-side-card,
+.dark-theme .settings-card,
+.dark-theme .profile-stat,
+.dark-theme .training-overview-card { background: linear-gradient(145deg, #11141d, #0d1017); }
+
+.light-theme .stat-icon.purple,
+.light-theme .stat-icon.blue,
+.light-theme .stat-icon.green,
+.light-theme .stat-icon.orange { color: var(--accent); background: rgba(155,77,255,.09); }
+.dark-theme .stat-icon.purple { color: #d8b4fe; }
+.light-theme .stat-bottom strong { color: var(--success); }
+
+/* Team page */
+.dark-theme .team-tabs,
+.light-theme .team-tabs { border-color: var(--line); }
+.dark-theme .team-tabs button,
+.light-theme .team-tabs button { color: var(--text-muted); }
+.dark-theme .team-tabs button:hover,
+.light-theme .team-tabs button:hover { color: var(--text-strong); }
+.dark-theme .team-tabs button.active,
+.light-theme .team-tabs button.active { color: var(--text-strong); border-bottom-color: var(--accent); }
+.dark-theme .player-card,
+.light-theme .player-card,
+.dark-theme .training-card,
+.light-theme .training-card {
+  border-color: var(--line);
+  background: var(--surface-1);
+  box-shadow: none;
+}
+.dark-theme .player-card:hover,
+.light-theme .player-card:hover,
+.dark-theme .training-card:hover,
+.light-theme .training-card:hover {
+  border-color: var(--accent-border);
+  background: var(--surface-2);
+  box-shadow: var(--shadow-card);
+}
+.dark-theme .player-avatar,
+.light-theme .player-avatar,
+.dark-theme .player-modal-avatar,
+.light-theme .player-modal-avatar { background: linear-gradient(135deg, #7c3aed, #c026ff); }
+.dark-theme .player-arrow,
+.light-theme .player-arrow { color: var(--text-faint); }
+.dark-theme .player-card:hover .player-arrow,
+.light-theme .player-card:hover .player-arrow { color: var(--accent); }
+.dark-theme .training-date,
+.light-theme .training-date { border-color: var(--line); }
+.dark-theme .training-date span,
+.light-theme .training-date span { background: rgba(155,77,255,.10); color: var(--accent); }
+
+/* Calendar */
+.dark-theme .calendar-nav-button,
+.light-theme .calendar-nav-button { border-color: var(--line); background: var(--surface-1); color: var(--text-muted); }
+.dark-theme .calendar-nav-button:hover,
+.light-theme .calendar-nav-button:hover { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+.dark-theme .calendar-day,
+.light-theme .calendar-day { border-color: var(--line-soft); background: var(--surface-1); }
+.dark-theme .calendar-day:hover,
+.light-theme .calendar-day:hover { background: var(--accent-soft); }
+.dark-theme .calendar-event-detail,
+.light-theme .calendar-event-detail { border-color: var(--line); background: var(--surface-1); }
+.dark-theme .calendar-event-detail:hover,
+.light-theme .calendar-event-detail:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+.dark-theme .calendar-event-dot.purple,
+.light-theme .calendar-event-dot.purple,
+.dark-theme .team-stat-dot.purple,
+.light-theme .team-stat-dot.purple { background: var(--accent); box-shadow: 0 0 10px rgba(155,77,255,.35); }
+
+/* Attendance — the whole component follows the active theme */
+.dark-theme .attendance-hero,
+.light-theme .attendance-hero {
+  border-color: var(--line);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(155,77,255,.13), transparent 32%),
+    radial-gradient(circle at 90% 100%, rgba(59,130,246,.07), transparent 30%),
+    var(--surface-1);
+  box-shadow: var(--shadow-card);
+}
+.light-theme .attendance-hero { background: linear-gradient(135deg, #fff, #faf9ff); }
+.dark-theme .attendance-hero h1,
+.light-theme .attendance-hero h1 { color: var(--text-strong); }
+.dark-theme .attendance-hero p,
+.light-theme .attendance-hero p,
+.dark-theme .attendance-team-picker label,
+.light-theme .attendance-team-picker label { color: var(--text-muted); }
+
+.dark-theme .attendance-calendar-card,
+.light-theme .attendance-calendar-card {
+  border-color: var(--line);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-card);
+}
+.dark-theme .attendance-calendar-toolbar,
+.light-theme .attendance-calendar-toolbar,
+.dark-theme .attendance-summary,
+.light-theme .attendance-summary { border-color: var(--line); }
+.dark-theme .attendance-summary-card,
+.light-theme .attendance-summary-card { border-color: var(--line); background: var(--surface-2); }
+.dark-theme .attendance-summary-card span,
+.light-theme .attendance-summary-card span { color: var(--text-faint); }
+.dark-theme .attendance-summary-card.highlight,
+.light-theme .attendance-summary-card.highlight { border-color: var(--accent-border); background: var(--accent-soft); }
+.dark-theme .attendance-summary-card.highlight strong,
+.light-theme .attendance-summary-card.highlight strong { color: var(--accent); }
+
+.dark-theme .attendance-table th,
+.dark-theme .attendance-table td,
+.light-theme .attendance-table th,
+.light-theme .attendance-table td { border-color: var(--line-soft); }
+.dark-theme .attendance-table thead th,
+.light-theme .attendance-table thead th { background: var(--surface-2); color: var(--text-faint); }
+.dark-theme .attendance-player-header,
+.light-theme .attendance-player-header,
+.dark-theme .attendance-total-header,
+.light-theme .attendance-total-header {
+  background: var(--surface-2) !important;
+  color: var(--text-muted) !important;
+}
+.dark-theme .attendance-player-cell,
+.light-theme .attendance-player-cell { background: var(--surface-1); }
+.dark-theme .attendance-table tbody tr:hover .attendance-player-cell,
+.light-theme .attendance-table tbody tr:hover .attendance-player-cell { background: var(--accent-soft); }
+.dark-theme .attendance-training-date,
+.light-theme .attendance-training-date { color: var(--text-strong); }
+.dark-theme .attendance-training-date span,
+.light-theme .attendance-training-date span,
+.dark-theme .attendance-training-header small,
+.light-theme .attendance-training-header small { color: var(--accent); }
+.dark-theme .attendance-player strong,
+.light-theme .attendance-player strong { color: var(--text-strong); }
+.dark-theme .attendance-player span,
+.light-theme .attendance-player span { color: var(--text-faint); }
+.light-theme .attendance-cell { background: #fff; }
+.dark-theme .attendance-cell { background: var(--surface-1); }
+
+/* AI */
+.dark-theme .ai-page-icon,
+.light-theme .ai-page-icon { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+.dark-theme .ai-hero h1,
+.light-theme .ai-hero h1 { color: var(--text-strong); }
+.dark-theme .ai-hero p,
+.light-theme .ai-hero p { color: var(--text-muted); }
+.dark-theme .ai-panel,
+.light-theme .ai-panel,
+.dark-theme .ai-summary-card,
+.light-theme .ai-summary-card,
+.dark-theme .ai-side-note,
+.light-theme .ai-side-note,
+.dark-theme .ai-demo-result,
+.light-theme .ai-demo-result { border-color: var(--line); background: var(--surface-1); box-shadow: var(--shadow-card); }
+.dark-theme .ai-step,
+.light-theme .ai-step { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+.dark-theme .ai-objective,
+.light-theme .ai-objective { border-color: var(--line); background: var(--surface-2); color: var(--text-muted); }
+.dark-theme .ai-objective:hover,
+.light-theme .ai-objective:hover,
+.dark-theme .ai-objective.active,
+.light-theme .ai-objective.active { border-color: var(--accent-border); background: var(--accent-soft); color: var(--text-strong); }
+.dark-theme .ai-team-summary,
+.light-theme .ai-team-summary { border-color: var(--line); background: var(--surface-2); }
+.dark-theme .ai-team-avatar,
+.light-theme .ai-team-avatar { background: linear-gradient(135deg, #7c3aed, #c026ff); }
+
+/* Forms */
+.dark-theme input,
+.dark-theme select,
+.dark-theme textarea,
+.light-theme input,
+.light-theme select,
+.light-theme textarea {
+  border-color: var(--line);
+  border-radius: 11px;
+}
+.light-theme input,
+.light-theme select,
+.light-theme textarea { background: #fff; color: var(--text-strong); }
+.dark-theme input,
+.dark-theme select,
+.dark-theme textarea { background: var(--surface-2); color: var(--text-strong); }
+.light-theme input:focus,
+.light-theme select:focus,
+.light-theme textarea:focus,
+.dark-theme input:focus,
+.dark-theme select:focus,
+.dark-theme textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(155,77,255,.10); }
+
+/* Modals */
+.dark-theme .player-modal,
+.dark-theme .delete-modal,
+.light-theme .player-modal,
+.light-theme .delete-modal { border-color: var(--line); background: var(--surface-1); box-shadow: var(--shadow-float); }
+.dark-theme .player-modal-close,
+.light-theme .player-modal-close { border-color: var(--line); background: var(--surface-2); color: var(--text-muted); }
+
+/* Auth is intentionally light on first entry */
+.auth-screen {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(155,77,255,.10), transparent 34%),
+    radial-gradient(circle at 10% 90%, rgba(217,70,239,.055), transparent 25%),
+    #f7f7fb !important;
+  color: #171923 !important;
+}
+.auth-screen::before { background-image: linear-gradient(rgba(80,50,130,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(80,50,130,.035) 1px, transparent 1px); }
+.auth-card { border-color: #e2e2ed; background: rgba(255,255,255,.94); box-shadow: 0 28px 90px rgba(45,35,70,.12), 0 0 70px rgba(155,77,255,.07); }
+.auth-brand .brand-logo { background: linear-gradient(135deg, #7c3aed, #c026ff); }
+.auth-brand .brand-name { color: #171923; }
+.auth-brand .brand-name span { color: #a855f7; }
+.auth-heading h1 { color: #171923; }
+.auth-heading p { color: #72798a; }
+.auth-google { border-color: #e1e2ea !important; background: #fff !important; color: #272b35 !important; }
+.auth-submit { background: linear-gradient(135deg, #7c3aed, #a855f7 55%, #d946ef) !important; }
+.auth-switch { color: #7c3aed !important; }
+.auth-screen input { background: #fff !important; color: #171923 !important; border-color: #dfe1ea !important; }
+.auth-password-field { position: relative; }
+.auth-password-field input { padding-right: 48px; }
+.auth-password-toggle { color: #7d8492; }
+.auth-password-toggle:hover { background: #f0f1f5; color: #5f6674; }
+.auth-screen .form-group input { background: #fff !important; color: #171923 !important; -webkit-text-fill-color: #171923 !important; }
+.auth-screen .form-group input:-webkit-autofill,
+.auth-screen .form-group input:-webkit-autofill:hover,
+.auth-screen .form-group input:-webkit-autofill:focus,
+.auth-screen .form-group input:-webkit-autofill:active { -webkit-text-fill-color: #171923 !important; box-shadow: 0 0 0 1000px #fff inset !important; }
+.auth-screen input::placeholder { color: #a3a8b5; }
+.auth-screen input:-webkit-autofill,
+.auth-screen input:-webkit-autofill:hover,
+.auth-screen input:-webkit-autofill:focus { -webkit-text-fill-color: #171923; box-shadow: 0 0 0 1000px #fff inset; }
+
+/* Small details that make both themes feel related */
+.light-theme .card-label,
+.dark-theme .card-label { color: var(--text-faint); }
+.light-theme .empty-team-tab,
+.dark-theme .empty-team-tab { border-color: var(--line); background: var(--surface-1); }
+
+@media (max-width: 900px) {
+  .page, .team-page { padding-left: 24px; padding-right: 24px; }
+  .attendance-hero { border-radius: 18px; }
+}
+
+@media (max-width: 600px) {
+  .page, .team-page { padding-left: 16px; padding-right: 16px; }
+  .auth-card { padding: 30px 24px 28px; border-radius: 20px; }
+}
+
+/* Training editor / plan builder */
+.dark-theme .training-editor-backdrop,
+.light-theme .training-editor-backdrop { background: rgba(12, 14, 22, .62); backdrop-filter: blur(12px); }
+.dark-theme .training-editor-modal,
+.light-theme .training-editor-modal { border-color: var(--line); background: var(--surface-1); color: var(--text); box-shadow: var(--shadow-float); border-radius: 22px; }
+.dark-theme .training-editor-header,
+.light-theme .training-editor-header,
+.dark-theme .training-editor-sidebar,
+.light-theme .training-editor-sidebar { border-color: var(--line); }
+.dark-theme .training-editor-icon,
+.light-theme .training-editor-icon { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+.dark-theme .training-editor-eyebrow,
+.dark-theme .training-editor-section-label,
+.light-theme .training-editor-eyebrow,
+.light-theme .training-editor-section-label { color: var(--text-faint); }
+.dark-theme .training-editor-header h2,
+.light-theme .training-editor-header h2,
+.dark-theme .training-editor-workspace-head h3,
+.light-theme .training-editor-workspace-head h3 { color: var(--text-strong); }
+.dark-theme .training-editor-header p,
+.light-theme .training-editor-header p,
+.dark-theme .training-editor-field label,
+.light-theme .training-editor-field label { color: var(--text-muted); }
+.dark-theme .training-editor-close,
+.light-theme .training-editor-close { border-color: var(--line); background: var(--surface-2); color: var(--text-muted); }
+.dark-theme .training-editor-close:hover,
+.light-theme .training-editor-close:hover { border-color: var(--accent-border); color: var(--accent); }
+.dark-theme .training-editor-summary div,
+.light-theme .training-editor-summary div { border-color: var(--line); background: var(--surface-2); }
+.dark-theme .training-editor-summary strong,
+.light-theme .training-editor-summary strong { color: var(--accent); }
+.dark-theme .training-editor-sidebar-note,
+.light-theme .training-editor-sidebar-note { border-color: var(--accent-border); background: var(--accent-soft); }
+.dark-theme .training-editor-sidebar-note > span,
+.light-theme .training-editor-sidebar-note > span { color: var(--accent); }
+.dark-theme .training-plan-builder,
+.light-theme .training-plan-builder { color: var(--text); }
+.dark-theme .training-plan-eyebrow,
+.light-theme .training-plan-eyebrow { color: var(--text-faint); }
+.dark-theme .training-plan-builder-heading h3,
+.light-theme .training-plan-builder-heading h3 { color: var(--text-strong); }
+.dark-theme .training-plan-builder-heading p,
+.light-theme .training-plan-builder-heading p { color: var(--text-muted); }
+.dark-theme .training-plan-total,
+.light-theme .training-plan-total { border-color: var(--line); background: var(--surface-2); }
+.dark-theme .training-plan-total strong,
+.light-theme .training-plan-total strong { color: var(--accent); }
+.dark-theme .training-plan-node,
+.light-theme .training-plan-node { border-color: var(--accent-border); background: var(--surface-1); box-shadow: 0 0 0 4px var(--surface-1); }
+.dark-theme .training-plan-node span,
+.light-theme .training-plan-node span { color: var(--accent); }
+.dark-theme .training-plan-card-body,
+.light-theme .training-plan-card-body { border-color: var(--line); background: var(--surface-1); box-shadow: var(--shadow-card); }
+.dark-theme .training-plan-card-header,
+.light-theme .training-plan-card-header { border-color: var(--line); }
+.dark-theme .training-plan-type-icon,
+.light-theme .training-plan-type-icon { background: var(--accent-soft); color: var(--accent); }
+.dark-theme .training-plan-card-heading strong,
+.light-theme .training-plan-card-heading strong { color: var(--text-strong); }
+.dark-theme .training-plan-actions button,
+.light-theme .training-plan-actions button { border-color: var(--line); color: var(--text-muted); background: transparent; }
+.dark-theme .training-plan-actions button:hover,
+.light-theme .training-plan-actions button:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); }
+
+/* Training library */
+.dark-theme .training-library-card,
+.light-theme .training-library-card,
+.dark-theme .library-card,
+.light-theme .library-card { border-color: var(--line); background: var(--surface-1); box-shadow: var(--shadow-card); }
+.dark-theme .training-library-card:hover,
+.light-theme .training-library-card:hover,
+.dark-theme .library-card:hover,
+.light-theme .library-card:hover { border-color: var(--accent-border); }
+
+/* Settings/profile surfaces */
+.dark-theme .settings-card,
+.light-theme .settings-card,
+.dark-theme .profile-stat,
+.light-theme .profile-stat { border-color: var(--line); background: var(--surface-1); }
+.dark-theme .theme-choice,
+.light-theme .theme-choice { border-color: var(--line); background: var(--surface-2); }
+.dark-theme .theme-choice.active,
+.light-theme .theme-choice.active { border-color: var(--accent-border); box-shadow: 0 0 0 3px rgba(155,77,255,.07); }
+.dark-theme .theme-preview,
+.light-theme .theme-preview { border-color: var(--line); }
+
+/* Keep semantic colors semantic while brand color stays purple */
+.dark-theme .attendance-status-icon-only.present,
+.light-theme .attendance-status-icon-only.present { color: var(--success); background: rgba(24,182,106,.09); border-color: rgba(24,182,106,.20); }
+.dark-theme .attendance-status-icon-only.absent,
+.light-theme .attendance-status-icon-only.absent { color: #ef6a74; background: rgba(239,68,68,.08); border-color: rgba(239,68,68,.18); }
+
+/* Better mobile density across the product */
+@media (max-width: 760px) {
+  .page, .team-page { padding-top: 26px; }
+  .hero-header, .team-page-header { gap: 16px; }
+  .team-training-header-actions { width: 100%; flex-wrap: wrap; }
+  .team-training-header-actions .neon-button,
+  .team-training-header-actions .secondary-button { flex: 1 1 150px; }
+}

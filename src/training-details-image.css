@@ -1,0 +1,154 @@
+/* Training details — keep uploaded exercise images proportional. */
+.training-details-modal .training-plan-content {
+  min-width: 0;
+}
+
+.training-details-modal .training-detail-exercise-image {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 280px !important;
+  margin: 12px auto 2px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  border-radius: 9px !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  background: #0a0d12 !important;
+}
+
+.light-theme .training-details-modal .training-detail-exercise-image {
+  border-color: #e2e7e2 !important;
+  background: #f7f9f7 !important;
+}
+
+@media (max-width: 650px) {
+  .training-details-modal .training-detail-exercise-image {
+    max-height: 220px !important;
+  }
+}
+
+/* Click-to-enlarge exercise images */
+.training-details-modal .training-detail-exercise-image-button {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px auto 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+  color: inherit;
+  border-radius: 10px;
+}
+
+.training-details-modal .training-detail-exercise-image-button:focus-visible {
+  outline: 2px solid var(--accent, #7c3aed);
+  outline-offset: 3px;
+}
+
+.training-details-modal .training-detail-exercise-image-button .training-detail-exercise-image {
+  margin: 0 !important;
+  cursor: zoom-in;
+}
+
+.training-detail-image-hint {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(12, 14, 20, .76);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity .16s ease, transform .16s ease;
+  pointer-events: none;
+}
+
+.training-details-modal .training-detail-exercise-image-button:hover .training-detail-image-hint,
+.training-details-modal .training-detail-exercise-image-button:focus-visible .training-detail-image-hint {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.exercise-image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: rgba(5, 7, 12, .86);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: zoom-out;
+  animation: exerciseLightboxIn .16s ease-out;
+}
+
+.exercise-image-lightbox-image {
+  display: block;
+  max-width: min(1200px, 92vw);
+  max-height: 88vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.45);
+  cursor: default;
+}
+
+.exercise-image-lightbox-close {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 50%;
+  background: rgba(20,22,30,.72);
+  color: #fff;
+  font-size: 27px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform .16s ease, background .16s ease;
+}
+
+.exercise-image-lightbox-close:hover {
+  transform: scale(1.05);
+  background: rgba(124,58,237,.85);
+}
+
+@keyframes exerciseLightboxIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 650px) {
+  .exercise-image-lightbox {
+    padding: 18px;
+  }
+
+  .exercise-image-lightbox-image {
+    max-width: 94vw;
+    max-height: 82vh;
+    border-radius: 10px;
+  }
+
+  .exercise-image-lightbox-close {
+    top: 12px;
+    right: 12px;
+  }
+
+  .training-detail-image-hint {
+    opacity: 1;
+    transform: none;
+  }
+}

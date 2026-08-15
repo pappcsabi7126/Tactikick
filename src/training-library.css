@@ -1,0 +1,161 @@
+/* =====================================================
+   TRAINING LIBRARY
+===================================================== */
+
+.team-training-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.training-library-modal {
+  width: min(860px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 32px));
+  overflow: auto;
+}
+
+.training-library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.training-library-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--border, rgba(255,255,255,.09));
+  border-radius: 16px;
+  background: var(--card, rgba(255,255,255,.035));
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.training-library-item:hover {
+  transform: translateY(-1px);
+  border-color: rgba(170, 90, 255, .35);
+  background: rgba(255,255,255,.055);
+}
+
+.training-library-item-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.training-library-item-info strong {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.training-library-item-info span {
+  font-size: 13px;
+  opacity: .62;
+}
+
+.training-library-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.training-library-empty {
+  min-height: 220px;
+  margin-top: 22px;
+  padding: 30px;
+  border: 1px dashed rgba(255,255,255,.12);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  opacity: .78;
+}
+
+.training-library-empty .placeholder-icon {
+  font-size: 34px;
+  margin-bottom: 4px;
+}
+
+.training-library-empty strong {
+  font-size: 17px;
+}
+
+.training-library-empty span {
+  max-width: 480px;
+  font-size: 13px;
+  line-height: 1.55;
+  opacity: .65;
+}
+
+.training-template-save-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 0 14px;
+  padding: 12px;
+  border: 1px solid var(--border, rgba(255,255,255,.09));
+  border-radius: 14px;
+  background: rgba(255,255,255,.025);
+}
+
+.training-template-save-row input {
+  min-width: 0;
+  flex: 1;
+  height: 44px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(0,0,0,.16);
+  color: inherit;
+  padding: 0 13px;
+  outline: none;
+}
+
+.training-template-save-row input:focus {
+  border-color: rgba(170, 90, 255, .5);
+}
+
+.training-template-save-row button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+@media (max-width: 700px) {
+  .team-training-header-actions {
+    width: 100%;
+  }
+
+  .team-training-header-actions button {
+    flex: 1;
+  }
+
+  .training-library-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .training-library-item-actions {
+    width: 100%;
+  }
+
+  .training-library-item-actions .neon-button {
+    flex: 1;
+  }
+
+  .training-template-save-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .training-template-save-row input,
+  .training-template-save-row button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,23 @@
+TactiKick — Finalization Pass (2026-08-14)
+
+Implemented:
+- Supabase Storage exercise image sync + per-user RLS
+- Training library persistence with `training_templates` table + RLS in supabase-schema.sql
+- Calendar "today" behavior uses the real current date
+- Global AI Planner now generates complete training plans locally
+- Optional Supabase Edge Function for real OpenAI-backed generation with safe server-side API key handling
+- Team-page AI planner uses the same cloud-first/local-fallback generation flow
+- AI-generated plans can be saved as real trainings
+- Added .env.example and production environment guidance
+- Preserved existing UI structure and styling; changes are additive/minimal
+
+Still optional for a later V1.1:
+- Realtime Supabase subscriptions
+- More advanced analytics
+- Full Italian copy audit
+- Password-recovery UX polish
+
+Validation:
+- The new smart planner was tested for 60/75/90/120 minute plans and each output sums exactly to the requested duration.
+- ESLint parses the modified React files successfully; the project still contains several pre-existing lint-rule violations unrelated to this pass.
+- Local Vite production build could not be executed in this environment because the uploaded node_modules lacks the optional native Rolldown binding. This is an environment/dependency issue, not a source parse error.
