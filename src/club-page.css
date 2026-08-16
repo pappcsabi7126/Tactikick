@@ -1435,3 +1435,131 @@
   .club-detail-header{flex-direction:column}
   .club-toast{right:16px;bottom:16px}
 }
+
+/* =========================================================
+   MOBILE CLUB CALENDAR — agenda view, no horizontal scrolling
+========================================================= */
+.club-mobile-week {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .club-calendar-scroll {
+    display: none;
+  }
+
+  .club-mobile-week {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .club-mobile-day-card {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface-1);
+    overflow: hidden;
+  }
+
+  .club-mobile-day-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 13px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .club-mobile-day-heading > div {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+  }
+
+  .club-mobile-day-heading strong {
+    color: var(--text-strong);
+    font-size: 13px;
+  }
+
+  .club-mobile-day-heading span {
+    color: var(--text-muted);
+    font-size: 10px;
+  }
+
+  .club-mobile-day-events {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .club-mobile-schedule-event {
+    width: 100%;
+    min-height: 66px;
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) 18px;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 13px;
+    border: 0;
+    border-bottom: 1px solid var(--line-soft);
+    border-radius: 0;
+    text-align: left;
+    color: var(--text);
+  }
+
+  .club-mobile-schedule-event:last-child {
+    border-bottom: 0;
+  }
+
+  .club-mobile-schedule-event.green { background: rgba(34,197,94,.07); }
+  .club-mobile-schedule-event.red { background: rgba(239,68,68,.07); }
+  .club-mobile-schedule-event.purple { background: rgba(139,92,246,.07); }
+  .club-mobile-schedule-event.blue { background: rgba(59,130,246,.07); }
+
+  .club-mobile-event-time {
+    color: var(--text-strong);
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .club-mobile-event-main {
+    min-width: 0;
+  }
+
+  .club-mobile-event-main strong,
+  .club-mobile-event-main small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .club-mobile-event-main strong {
+    color: var(--text-strong);
+    font-size: 12px;
+  }
+
+  .club-mobile-event-main small {
+    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 9px;
+  }
+
+  .club-mobile-event-arrow {
+    color: var(--text-muted);
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .club-mobile-day-empty {
+    padding: 14px 13px;
+    color: var(--text-faint);
+    font-size: 10px;
+  }
+
+  .club-calendar-hint {
+    margin-top: 12px;
+  }
+}

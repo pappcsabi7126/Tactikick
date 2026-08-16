@@ -964,9 +964,52 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
             </div>
           </div>
 
+          <div className="club-mobile-week" aria-label="Heti program mobil nézet">
+            {weekDays.map((day) => {
+              const dayEvents = visibleEvents
+                .filter((event) => event.date === day.dateKey)
+                .sort((a, b) => minutes(a.start) - minutes(b.start))
+
+              return (
+                <section className="club-mobile-day-card" key={day.dateKey}>
+                  <div className="club-mobile-day-heading">
+                    <div>
+                      <strong>{day.label}</strong>
+                      <span>{day.date.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })}</span>
+                    </div>
+                    <span>{dayEvents.length ? `${dayEvents.length} esemény` : 'Szabadnap'}</span>
+                  </div>
+
+                  {dayEvents.length > 0 ? (
+                    <div className="club-mobile-day-events">
+                      {dayEvents.map((event) => (
+                        <button
+                          type="button"
+                          key={event.id}
+                          className={`${eventColor(event.kind)} club-mobile-schedule-event ${!isClubManager ? 'club-event-readonly' : ''}`}
+                          disabled={!isClubManager}
+                          onClick={() => openEvent(event)}
+                        >
+                          <span className="club-mobile-event-time">{event.start}–{event.end}</span>
+                          <span className="club-mobile-event-main">
+                            <strong>{event.team || event.title}</strong>
+                            <small>{eventLocationLabel(event, pitches)}</small>
+                          </span>
+                          {isClubManager && <span className="club-mobile-event-arrow">›</span>}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="club-mobile-day-empty">Nincs tervezett esemény.</div>
+                  )}
+                </section>
+              )
+            })}
+          </div>
+
           <div className="club-calendar-hint">
             {isClubManager
-              ? 'Kattints egy eseményre a szerkesztéshez vagy törléshez.'
+              ? 'Kattints egy eseményre a részletek és a szerkesztés megnyitásához.'
               : 'Megtekintési mód: a klubprogramot csak a szakmai vezető módosíthatja.'}
           </div>
         </section>

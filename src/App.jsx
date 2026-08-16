@@ -845,6 +845,16 @@ function App() {
             </button>
 
             <button
+              className="mobile-profile-button"
+              type="button"
+              title={t('profile')}
+              aria-label={t('profile')}
+              onClick={() => navigate('profile')}
+            >
+              {(profile.name || 'CS').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
+            </button>
+
+            <button
               className="top-icon"
               type="button"
               title={t('notificationTitle')}
@@ -2608,7 +2618,7 @@ function ProfilePage({
         </div>
 
         <button
-          className="neon-button"
+          className="neon-button profile-edit-button"
           onClick={openEditProfile}
         >
           {t('editProfile')}

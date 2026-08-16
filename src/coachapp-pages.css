@@ -808,3 +808,45 @@
   font-size: 9px;
   margin-top: 4px;
 }
+
+@media (max-width: 650px) {
+  .profile-hero {
+    align-items: flex-start;
+    padding: 18px;
+    gap: 12px;
+  }
+
+  .profile-avatar-large {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    font-size: 19px;
+  }
+
+  .profile-hero > div:nth-child(2) {
+    min-width: 0;
+  }
+
+  .profile-hero h1 {
+    font-size: 25px;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .profile-hero p {
+    font-size: 9px;
+  }
+
+  .profile-edit-button {
+    flex: 0 0 100%;
+    margin-top: 2px;
+  }
+
+  .profile-stat-grid {
+    gap: 8px;
+  }
+
+  .profile-stat {
+    padding: 14px;
+  }
+}
