@@ -608,6 +608,12 @@
   box-shadow: 0 15px 35px rgba(181,44,255,.2);
 }
 
+.profile-avatar-large svg {
+  width: 46px;
+  height: 46px;
+  display: block;
+}
+
 .profile-hero > div:nth-child(2) {
   flex: 1;
 }

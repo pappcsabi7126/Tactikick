@@ -845,22 +845,30 @@ function App() {
             </button>
 
             <button
+              className="top-icon"
+              type="button"
+              title={t('notificationTitle')}
+              aria-label={t('notificationTitle')}
+              onClick={() => setNotificationsOpen((value) => !value)}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 8.5h18C21 16 18 16 18 9Z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 20h4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+              </svg>
+              <i />
+            </button>
+
+            <button
               className="mobile-profile-button"
               type="button"
               title={t('profile')}
               aria-label={t('profile')}
               onClick={() => navigate('profile')}
             >
-              {(profile.name || 'CS').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase()}
-            </button>
-
-            <button
-              className="top-icon"
-              type="button"
-              title={t('notificationTitle')}
-              onClick={() => setNotificationsOpen((value) => !value)}
-            >
-              ♧<i />
+              <svg viewBox="0 0 48 48" role="presentation">
+                <circle cx="24" cy="16" r="8" fill="currentColor" />
+                <path d="M10 40c0-7.2 6.3-13 14-13s14 5.8 14 13" fill="currentColor" />
+              </svg>
             </button>
             {cloudEnabled && cloudError && (
               <span className="cloud-status error" title={cloudError}>
@@ -2586,20 +2594,16 @@ function ProfilePage({
     setShowEditProfile(false)
   }
 
-  const initials = profile.name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-
   return (
     <div className="page">
 
       <div className="profile-hero">
 
-        <div className="profile-avatar-large">
-          {initials}
+        <div className="profile-avatar-large" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="presentation">
+            <circle cx="24" cy="16" r="8" fill="currentColor" />
+            <path d="M10 40c0-7.2 6.3-13 14-13s14 5.8 14 13" fill="currentColor" />
+          </svg>
         </div>
 
         <div>
