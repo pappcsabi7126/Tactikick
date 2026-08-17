@@ -3249,3 +3249,58 @@ select:focus-visible {
     place-items: center !important;
   }
 }
+
+/* =========================================================
+   MOBILE NAV V2 — consistent outline icons + clear active state
+========================================================= */
+@media (max-width:700px){
+  .mobile-bottom-nav{
+    height:68px !important;
+    left:12px !important;
+    right:12px !important;
+    bottom:10px !important;
+    padding:5px !important;
+    border-radius:20px !important;
+    background:color-mix(in srgb,var(--surface-1) 96%,transparent) !important;
+    box-shadow:0 14px 40px rgba(15,23,42,.16) !important;
+  }
+  .mobile-bottom-nav button{
+    position:relative !important;
+    gap:3px !important;
+    border-radius:15px !important;
+    color:var(--text-muted) !important;
+    transition:background .18s ease,color .18s ease,transform .18s ease !important;
+  }
+  .mobile-bottom-nav .mobile-nav-icon{
+    width:24px !important;
+    height:24px !important;
+    display:grid !important;
+    place-items:center !important;
+    font-size:0 !important;
+  }
+  .mobile-bottom-nav .mobile-nav-icon svg{
+    width:22px !important;
+    height:22px !important;
+    display:block !important;
+  }
+  .mobile-bottom-nav button small{
+    font-size:8.5px !important;
+    line-height:1 !important;
+    font-weight:750 !important;
+  }
+  .mobile-bottom-nav button.active{
+    color:var(--accent) !important;
+    background:var(--accent-soft) !important;
+  }
+  .mobile-bottom-nav button.active::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:24%;
+    right:24%;
+    height:3px;
+    border-radius:999px;
+    background:var(--accent);
+  }
+  .mobile-bottom-nav button:active{transform:scale(.97)}
+}

@@ -61,7 +61,7 @@ const EVENT_TYPES = [
 
 const ROLE_OPTIONS = [
   { value: 'coach', label: 'Edző' },
-  { value: 'professional_manager', label: 'Szakmai vezető' },
+  { value: 'admin', label: 'Admin' },
 ]
 
 function getWeekStart(source = new Date()) {
@@ -103,6 +103,12 @@ function eventColor(kind) {
   if (kind === 'goalkeeping') return 'club-event red'
   if (kind === 'other') return 'club-event blue'
   return 'club-event green'
+}
+
+function teamColorClass(event, teams) {
+  const team = teams.find((item) => String(item.id) === String(event.teamId))
+  const color = team?.color || event.color || 'green'
+  return `team-color-${color}`
 }
 
 function pitchName(pitches, pitchId) {
@@ -194,18 +200,25 @@ function cleanClubName(value) {
 function isManagerRole(role) {
   const value = String(role || '').trim().toLowerCase()
   return [
-    'professional_manager',
-    'szakmai vezető',
-    'szakmai vezeto',
     'admin',
     'administrator',
     'club manager',
     'head coach',
+    'professional_manager',
+    'szakmai vezető',
+    'szakmai vezeto',
   ].includes(value)
 }
 
 function normalizeMemberRole(role) {
-  return isManagerRole(role) ? 'professional_manager' : 'coach'
+  return isManagerRole(role) ? 'admin' : 'coach'
+}
+
+// The primary TactiKick account is the club admin.
+// Keep the UI permission check consistent even if an older profile row still
+// contains the legacy "Edző" role. Database RLS remains the real security boundary.
+function isPrimaryManager(profile) {
+  return String(profile?.email || '').trim().toLowerCase() === 'pappcsabi7126@gmail.com'
 }
 
 function buildTrainingEvents(trainings, teams) {
@@ -246,6 +259,12 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
   const [logoError, setLogoError] = useState('')
   const [weekStart, setWeekStart] = useState(getWeekStart)
   const [selectedPitch, setSelectedPitch] = useState('all')
+  const [selectedTeam, setSelectedTeam] = useState('all')
+  const [openDays, setOpenDays] = useState(() => {
+    const today = getWeekStart()
+    const dayIndex = (new Date().getDay() + 6) % 7
+    return new Set([dateKey(new Date(today.getTime() + dayIndex * 86400000))])
+  })
   const [pitches, setPitches] = useState(() => {
     const stored = readStorage(`${storageKey}-pitches`, DEFAULT_PITCHES)
     const source = Array.isArray(stored) && stored.length ? stored : DEFAULT_PITCHES
@@ -272,7 +291,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     window.setTimeout(() => setToast(null), 2600)
   }
 
-  const isClubManager = isManagerRole(profile?.role)
+  const isClubManager = isManagerRole(profile?.role) || isPrimaryManager(profile)
 
   useEffect(() => {
     if (members) return
@@ -323,11 +342,11 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     () => events.filter((event) => weekDateSet.has(event.date)),
     [events, weekDateSet],
   )
-  const visibleEvents = selectedPitch === 'all'
-    ? weekEvents
-    : weekEvents.filter((event) =>
-        (event.pitchIds || [event.pitchId]).includes(selectedPitch),
-      )
+  const visibleEvents = weekEvents.filter((event) => {
+    const pitchMatch = selectedPitch === 'all' || (event.pitchIds || [event.pitchId]).includes(selectedPitch)
+    const teamMatch = selectedTeam === 'all' || String(event.teamId || '') === String(selectedTeam)
+    return pitchMatch && teamMatch
+  })
 
   const upcoming = [...visibleEvents]
     .sort((a, b) => `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`))
@@ -357,16 +376,38 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     }
   }, [isClubManager, modal])
 
+  function setWeekAndOpenToday(nextWeekStart) {
+    const next = new Date(nextWeekStart)
+    setWeekStart(next)
+    const today = new Date()
+    const todayKey = dateKey(today)
+    const days = makeWeekDays(next)
+    const inWeek = days.some((day) => day.dateKey === todayKey)
+    setOpenDays(new Set([inWeek ? todayKey : days[0].dateKey]))
+  }
+
   function moveWeek(amount) {
     setWeekStart((current) => {
       const next = new Date(current)
       next.setDate(current.getDate() + amount * 7)
+      const days = makeWeekDays(next)
+      const todayKey = dateKey(new Date())
+      setOpenDays(new Set([days.some((day) => day.dateKey === todayKey) ? todayKey : days[0].dateKey]))
       return next
     })
   }
 
   function resetWeek() {
-    setWeekStart(getWeekStart())
+    setWeekAndOpenToday(getWeekStart())
+  }
+
+  function toggleDay(dateKeyValue) {
+    setOpenDays((current) => {
+      const next = new Set(current)
+      if (next.has(dateKeyValue)) next.delete(dateKeyValue)
+      else next.add(dateKeyValue)
+      return next
+    })
   }
 
   function copyPreviousWeek() {
@@ -788,7 +829,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
             <div>
               <h1>{cleanClubName(clubName)}</h1>
               <span className="club-role-pill">
-                {isClubManager ? 'Szakmai vezető' : 'Edző'}
+                {isClubManager ? 'Admin' : 'Edző'}
               </span>
             </div>
           </div>
@@ -846,24 +887,42 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
           <div className="club-card-heading">
             <div>
               <div className="card-label">KLUBNAPTÁR</div>
-              <h2>Heti program · {weekLabel}</h2>
+              <h2>Heti program <span className="club-desktop-week-label">· {weekLabel}</span></h2>
             </div>
 
             <div className="club-week-controls">
               {isClubManager && (
                 <button
                   type="button"
-                  className="secondary-button"
+                  className="secondary-button club-copy-week-button"
                   onClick={copyPreviousWeek}
                   title="Az előző heti program átmásolása erre a hétre"
                 >
                   ⧉ Előző hét másolása
                 </button>
               )}
-              <button type="button" className="calendar-nav-button" onClick={() => moveWeek(-1)} aria-label="Előző hét">‹</button>
-              <button type="button" className="secondary-button" onClick={resetWeek}>Ma</button>
-              <button type="button" className="calendar-nav-button" onClick={() => moveWeek(1)} aria-label="Következő hét">›</button>
+              <button type="button" className="calendar-nav-button club-week-prev" onClick={() => moveWeek(-1)} aria-label="Előző hét">‹ <span>Előző hét</span></button>
+              <div className="club-mobile-week-label">{weekLabel}</div>
+              <button type="button" className="calendar-nav-button club-week-next" onClick={() => moveWeek(1)} aria-label="Következő hét"><span>Következő hét</span> ›</button>
+              <button type="button" className="secondary-button club-week-today" onClick={resetWeek}>Ma</button>
             </div>
+          </div>
+
+          <div className="club-mobile-filters" aria-label="Naptár szűrők">
+            <label>
+              <span>Pálya</span>
+              <select value={selectedPitch} onChange={(event) => setSelectedPitch(event.target.value)}>
+                <option value="all">Minden pálya</option>
+                {pitches.map((pitch) => <option key={pitch.id} value={pitch.id}>{pitch.name}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Csapat</span>
+              <select value={selectedTeam} onChange={(event) => setSelectedTeam(event.target.value)}>
+                <option value="all">Minden csapat</option>
+                {teams.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+              </select>
+            </label>
           </div>
 
           <div className="club-filter-row">
@@ -872,7 +931,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
               className={selectedPitch === 'all' ? 'club-filter active' : 'club-filter'}
               onClick={() => setSelectedPitch('all')}
             >
-              Minden helyszín
+              Minden pálya
             </button>
 
             {pitches.map((pitch) => (
@@ -883,6 +942,24 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
                 onClick={() => setSelectedPitch(pitch.id)}
               >
                 {pitch.name}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              className={selectedTeam === 'all' ? 'club-filter active' : 'club-filter'}
+              onClick={() => setSelectedTeam('all')}
+            >
+              Minden csapat
+            </button>
+            {teams.map((team) => (
+              <button
+                type="button"
+                key={team.id}
+                className={String(selectedTeam) === String(team.id) ? 'club-filter active' : 'club-filter'}
+                onClick={() => setSelectedTeam(team.id)}
+              >
+                {team.name}
               </button>
             ))}
 
@@ -941,7 +1018,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
                             type="button"
                             key={event.id}
                             disabled={!isClubManager}
-                            className={`${eventColor(event.kind)} ${!isClubManager ? 'club-event-readonly' : ''}`}
+                            className={`${eventColor(event.kind)} ${teamColorClass(event, teams)} ${!isClubManager ? 'club-event-readonly' : ''}`}
                             style={{
                               top: `${Math.min(93, top)}%`,
                               height: `${Math.min(42, height)}%`,
@@ -969,39 +1046,49 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
               const dayEvents = visibleEvents
                 .filter((event) => event.date === day.dateKey)
                 .sort((a, b) => minutes(a.start) - minutes(b.start))
+              const isOpen = openDays.has(day.dateKey)
 
               return (
-                <section className="club-mobile-day-card" key={day.dateKey}>
-                  <div className="club-mobile-day-heading">
-                    <div>
+                <section className={`club-mobile-day-card ${isOpen ? 'open' : ''}`} key={day.dateKey}>
+                  <button
+                    type="button"
+                    className="club-mobile-day-heading"
+                    onClick={() => toggleDay(day.dateKey)}
+                    aria-expanded={isOpen}
+                  >
+                    <span className="club-mobile-day-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M7 3v4M17 3v4M3 10h18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                    </span>
+                    <span className="club-mobile-day-title">
                       <strong>{day.label}</strong>
                       <span>{day.date.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric' })}</span>
-                    </div>
-                    <span>{dayEvents.length ? `${dayEvents.length} esemény` : 'Szabadnap'}</span>
-                  </div>
+                    </span>
+                    <span className="club-mobile-day-count">{dayEvents.length} {dayEvents.length === 1 ? 'esemény' : 'esemény'}</span>
+                    <span className="club-mobile-day-chevron" aria-hidden="true">⌄</span>
+                  </button>
 
-                  {dayEvents.length > 0 ? (
+                  {isOpen && (dayEvents.length > 0 ? (
                     <div className="club-mobile-day-events">
                       {dayEvents.map((event) => (
                         <button
                           type="button"
                           key={event.id}
-                          className={`${eventColor(event.kind)} club-mobile-schedule-event ${!isClubManager ? 'club-event-readonly' : ''}`}
+                          className={`${eventColor(event.kind)} ${teamColorClass(event, teams)} club-mobile-schedule-event ${!isClubManager ? 'club-event-readonly' : ''}`}
                           disabled={!isClubManager}
                           onClick={() => openEvent(event)}
                         >
-                          <span className="club-mobile-event-time">{event.start}–{event.end}</span>
+                          <span className="club-mobile-event-time">{event.start}<i>–</i>{event.end}</span>
                           <span className="club-mobile-event-main">
                             <strong>{event.team || event.title}</strong>
                             <small>{eventLocationLabel(event, pitches)}</small>
                           </span>
-                          {isClubManager && <span className="club-mobile-event-arrow">›</span>}
+                          <span className="club-mobile-event-arrow" aria-hidden="true">›</span>
                         </button>
                       ))}
                     </div>
                   ) : (
                     <div className="club-mobile-day-empty">Nincs tervezett esemény.</div>
-                  )}
+                  ))}
                 </section>
               )
             })}
@@ -1010,7 +1097,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
           <div className="club-calendar-hint">
             {isClubManager
               ? 'Kattints egy eseményre a részletek és a szerkesztés megnyitásához.'
-              : 'Megtekintési mód: a klubprogramot csak a szakmai vezető módosíthatja.'}
+              : 'Megtekintési mód: a klubprogramot csak az admin módosíthatja.'}
           </div>
         </section>
 
@@ -1045,12 +1132,12 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
 
           <section className="club-side-card">
             <div className="card-label">KLUBTAGOK</div>
-            <h3>Edzők és szakmai vezetők</h3>
+            <h3>Edzők és adminok</h3>
 
             <div className="club-role-list">
               {memberList.slice(0, 6).map((member) => (
                 <div key={member.id}>
-                  <span>{normalizeMemberRole(member.role) === 'professional_manager' ? '◆' : '●'}</span>
+                  <span>{normalizeMemberRole(member.role) === 'admin' ? '◆' : '●'}</span>
                   <div>
                     <strong>{member.name || member.email}</strong>
                     <small>
@@ -1640,7 +1727,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
             <div className="player-modal-eyebrow">KLUBTAGOK</div>
             <h2>Edzők meghívása</h2>
             <p className="player-modal-position">
-              Az email-cím alapján elkészítjük a meghívót. A klubban csak két szerepkör van: szakmai vezető és edző.
+              Az email-cím alapján elkészítjük a meghívót. A klubban csak két szerepkör van: admin és edző.
             </p>
 
             <form className="club-inline-form" onSubmit={invitePerson}>

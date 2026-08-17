@@ -1705,3 +1705,372 @@
     font-size: 9px !important;
   }
 }
+
+/* =========================================================
+   MOBILE CLUB CALENDAR V4 — clean weekly agenda
+========================================================= */
+@media (max-width:700px){
+  .club-card-heading{
+    margin-bottom:14px !important;
+  }
+  .club-card-heading > div:first-child .card-label{font-size:9px !important;letter-spacing:.16em !important}
+  .club-card-heading > div:first-child h2{
+    font-size:24px !important;
+    line-height:1.1 !important;
+    margin-top:6px !important;
+  }
+
+  .club-week-controls{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) minmax(0,1fr) !important;
+    gap:8px !important;
+    align-items:stretch !important;
+  }
+  .club-copy-week-button{display:none !important}
+  .club-week-controls .club-week-prev,
+  .club-week-controls .club-week-next,
+  .club-week-controls .club-week-today{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:44px !important;
+    border-radius:12px !important;
+    font-size:12px !important;
+    font-weight:750 !important;
+  }
+  .club-week-controls .club-week-prev::after{content:" Előző hét"}
+  .club-week-controls .club-week-next::before{content:"Következő hét ";font-size:12px}
+  .club-week-controls .club-week-prev,
+  .club-week-controls .club-week-next{font-size:0 !important}
+  .club-week-controls .club-week-prev::first-letter,
+  .club-week-controls .club-week-next::first-letter{font-size:18px}
+  .club-week-controls .club-week-today{display:none !important}
+
+  .club-filter-row{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+    overflow:visible !important;
+    padding:0 !important;
+    margin:0 0 12px !important;
+  }
+  .club-filter-row .club-filter{display:none !important}
+  .club-filter-row .club-filter.active{display:flex !important;align-items:center;justify-content:space-between !important}
+  .club-filter-row .club-filter.active:first-child::after,
+  .club-filter-row .club-filter.active:nth-last-child(1)::after{
+    content:"⌄";
+    font-size:14px;
+    margin-left:8px;
+  }
+  .club-filter-row .club-filter.active{min-height:42px;padding:9px 12px !important;border-radius:12px !important;font-size:11px !important}
+  .club-filter-row .club-filter.active:first-child{grid-column:1}
+
+  .club-mobile-week{gap:8px !important;margin-top:0 !important}
+  .club-mobile-day-card{
+    border:1px solid var(--line) !important;
+    border-radius:16px !important;
+    background:var(--surface-1) !important;
+    box-shadow:0 5px 18px rgba(15,23,42,.035) !important;
+  }
+  .club-mobile-day-heading{
+    width:100% !important;
+    min-height:62px !important;
+    display:grid !important;
+    grid-template-columns:40px minmax(0,1fr) auto 22px !important;
+    align-items:center !important;
+    gap:10px !important;
+    padding:10px 13px !important;
+    border:0 !important;
+    background:transparent !important;
+    color:var(--text) !important;
+    text-align:left !important;
+    cursor:pointer !important;
+  }
+  .club-mobile-day-icon{
+    width:40px;height:40px;display:grid;place-items:center;border-radius:11px;
+    background:var(--accent-soft);color:var(--accent);
+  }
+  .club-mobile-day-icon svg{width:21px;height:21px;display:block}
+  .club-mobile-day-title{display:flex;align-items:baseline;gap:8px;min-width:0}
+  .club-mobile-day-title strong{font-size:15px !important;color:var(--text-strong) !important;white-space:nowrap}
+  .club-mobile-day-title span{font-size:10px !important;color:var(--text-muted) !important;white-space:nowrap}
+  .club-mobile-day-count{font-size:10px !important;color:var(--text-muted) !important;white-space:nowrap}
+  .club-mobile-day-chevron{font-size:20px !important;color:var(--text-muted) !important;line-height:1 !important;transform:rotate(0deg);transition:transform .18s ease}
+  .club-mobile-day-card.open .club-mobile-day-chevron{transform:rotate(180deg);color:var(--accent)}
+  .club-mobile-day-card.open .club-mobile-day-icon{background:var(--accent-soft);color:var(--accent)}
+
+  .club-mobile-day-events{border-top:1px solid var(--line-soft) !important;padding:5px 10px 8px !important}
+  .club-mobile-schedule-event{
+    min-height:78px !important;
+    display:grid !important;
+    grid-template-columns:76px minmax(0,1fr) 18px !important;
+    gap:12px !important;
+    align-items:center !important;
+    margin:4px 0 !important;
+    padding:10px 10px !important;
+    border:1px solid var(--line-soft) !important;
+    border-radius:13px !important;
+    background:var(--surface-1) !important;
+    box-shadow:none !important;
+  }
+  .club-mobile-schedule-event::before{content:"";width:3px;height:calc(100% - 12px);position:absolute;left:0;top:6px;border-radius:0 4px 4px 0;background:var(--accent)}
+  .club-mobile-event-time{font-size:12px !important;font-weight:800 !important;color:var(--text-strong) !important;line-height:1.35 !important;white-space:nowrap !important}
+  .club-mobile-event-time i{display:inline-block;font-style:normal;margin:0 3px;color:var(--text-muted)}
+  .club-mobile-event-main strong{font-size:14px !important;line-height:1.2 !important}
+  .club-mobile-event-main small{font-size:10px !important;margin-top:5px !important;line-height:1.3 !important;white-space:normal !important}
+  .club-mobile-event-arrow{font-size:22px !important;color:var(--text-muted) !important}
+  .club-mobile-day-empty{padding:13px 14px 16px !important;font-size:10px !important;color:var(--text-faint) !important}
+
+  .club-calendar-hint{display:none !important}
+}
+
+.club-mobile-filters{display:none}
+@media (max-width:700px){
+  .club-card-heading > div:first-child h2{margin-bottom:0 !important}
+  .club-week-controls{grid-template-columns:minmax(0,1fr) minmax(125px,1.35fr) minmax(0,1fr) !important}
+  .club-week-controls .club-week-prev,
+  .club-week-controls .club-week-next{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:5px !important;
+    font-size:11px !important;
+    white-space:nowrap !important;
+  }
+  .club-week-controls .club-week-prev span,
+  .club-week-controls .club-week-next span{font-size:11px !important}
+  .club-week-controls .club-mobile-week-label{
+    min-width:0;
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 5px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface-2);
+    color:var(--text-strong);
+    font-size:12px;
+    font-weight:800;
+    text-align:center;
+    white-space:nowrap;
+  }
+  .club-mobile-filters{
+    display:grid !important;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin:12px 0 12px;
+  }
+  .club-mobile-filters label{display:block;min-width:0}
+  .club-mobile-filters label span{
+    display:block;
+    margin:0 0 5px 2px;
+    font-size:8px;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+  }
+  .club-mobile-filters select{
+    width:100%;
+    min-height:42px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:var(--surface-1);
+    color:var(--text-strong);
+    padding:0 11px;
+    font:inherit;
+    font-size:11px;
+    font-weight:700;
+    outline:none;
+  }
+  .club-mobile-filters select:focus{border-color:var(--accent-border);box-shadow:0 0 0 3px var(--accent-soft)}
+  .club-filter-row{display:none !important}
+}
+@media (max-width:700px){
+  .club-week-controls .club-week-prev::after,
+  .club-week-controls .club-week-next::before{content:none !important}
+}
+@media (max-width:700px){
+  .club-desktop-week-label{display:none !important}
+}
+@media (max-width:700px){
+  .club-mobile-schedule-event{
+    position:relative !important;
+    top:auto !important;
+    left:auto !important;
+    right:auto !important;
+    bottom:auto !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:78px !important;
+  }
+}
+
+
+/* TEAM COLORS — the team's configured color is the visual source of truth for calendar events. */
+.team-color-purple{--team-accent:#8b5cf6;--team-soft:rgba(139,92,246,.10);--team-border:rgba(139,92,246,.24)}
+.team-color-blue{--team-accent:#3b82f6;--team-soft:rgba(59,130,246,.10);--team-border:rgba(59,130,246,.24)}
+.team-color-green{--team-accent:#16a34a;--team-soft:rgba(22,163,74,.10);--team-border:rgba(22,163,74,.24)}
+.team-color-red{--team-accent:#ef4444;--team-soft:rgba(239,68,68,.10);--team-border:rgba(239,68,68,.24)}
+.team-color-orange{--team-accent:#f59e0b;--team-soft:rgba(245,158,11,.10);--team-border:rgba(245,158,11,.24)}
+.team-color-teal{--team-accent:#0f9f9a;--team-soft:rgba(15,159,154,.10);--team-border:rgba(15,159,154,.24)}
+
+.club-mobile-schedule-event.team-color-purple,
+.club-mobile-schedule-event.team-color-blue,
+.club-mobile-schedule-event.team-color-green,
+.club-mobile-schedule-event.team-color-red,
+.club-mobile-schedule-event.team-color-orange,
+.club-mobile-schedule-event.team-color-teal{
+  background:var(--surface-1) !important;
+  border-color:var(--team-border) !important;
+}
+.club-mobile-schedule-event.team-color-purple::before,
+.club-mobile-schedule-event.team-color-blue::before,
+.club-mobile-schedule-event.team-color-green::before,
+.club-mobile-schedule-event.team-color-red::before,
+.club-mobile-schedule-event.team-color-orange::before,
+.club-mobile-schedule-event.team-color-teal::before{background:var(--team-accent) !important}
+.club-mobile-schedule-event.team-color-purple .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-blue .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-green .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-red .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-orange .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-teal .club-mobile-event-main strong{color:var(--team-accent)}
+.club-mobile-schedule-event.team-color-purple .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-blue .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-green .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-red .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-orange .club-mobile-event-main strong,
+.club-mobile-schedule-event.team-color-teal .club-mobile-event-main strong{
+  display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:4px 9px;border-radius:8px;background:var(--team-soft);border:1px solid var(--team-border)
+}
+
+/* Desktop calendar event accents follow the configured team color too. */
+.club-calendar-grid button.team-color-purple,
+.club-calendar-grid button.team-color-blue,
+.club-calendar-grid button.team-color-green,
+.club-calendar-grid button.team-color-red,
+.club-calendar-grid button.team-color-orange,
+.club-calendar-grid button.team-color-teal{background:var(--team-soft) !important;border-color:var(--team-border) !important;color:var(--text-strong)}
+.club-calendar-grid button.team-color-purple::before,
+.club-calendar-grid button.team-color-blue::before,
+.club-calendar-grid button.team-color-green::before,
+.club-calendar-grid button.team-color-red::before,
+.club-calendar-grid button.team-color-orange::before,
+.club-calendar-grid button.team-color-teal::before{background:var(--team-accent) !important}
+
+/* =========================================================
+   DESKTOP STABILITY — keep the full club workspace intact
+   on desktop/tablet widths while the agenda transforms only
+   on small screens.
+========================================================= */
+@media (min-width: 701px) {
+  .club-page {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    overflow-x: visible;
+  }
+
+  .club-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .club-header-actions {
+    width: auto !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+
+  .club-header-actions > * {
+    flex: 0 0 auto !important;
+    width: auto !important;
+  }
+
+  .club-main-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .club-calendar-card {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .club-calendar-scroll {
+    display: block !important;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .club-calendar-grid {
+    display: grid !important;
+    grid-template-columns: 62px repeat(7, minmax(126px, 1fr));
+    min-width: 980px;
+  }
+
+  .club-mobile-week,
+  .club-mobile-filters {
+    display: none !important;
+  }
+
+  .club-sidebar-stack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .club-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .club-week-controls {
+    width: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
+/* Tablet: retain the desktop calendar until the dedicated mobile agenda kicks in. */
+@media (min-width: 701px) and (max-width: 1100px) {
+  .club-main-grid {
+    grid-template-columns: minmax(0, 1fr) 270px;
+  }
+
+  .club-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .club-header-actions {
+    max-width: 520px;
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 701px) {
+  .club-card-heading { display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; align-items:center !important; gap:24px !important; }
+  .club-card-heading > div:first-child { min-width:0 !important; }
+  .club-week-controls { display:flex !important; align-items:center !important; justify-content:flex-end !important; flex-wrap:nowrap !important; gap:8px !important; min-width:0 !important; white-space:nowrap !important; }
+  .club-week-controls .calendar-nav-button { width:auto !important; min-width:112px !important; height:42px !important; min-height:42px !important; padding:0 14px !important; border-radius:11px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; gap:5px !important; font-size:12px !important; line-height:1 !important; white-space:nowrap !important; }
+  .club-week-controls .club-week-prev span, .club-week-controls .club-week-next span { display:inline !important; font-size:12px !important; }
+  .club-week-controls .club-mobile-week-label { min-width:142px !important; height:42px !important; min-height:42px !important; padding:0 12px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; border:1px solid var(--line) !important; border-radius:11px !important; background:var(--surface-1) !important; color:var(--text-strong) !important; font-size:13px !important; font-weight:800 !important; line-height:1 !important; text-align:center !important; white-space:nowrap !important; box-sizing:border-box !important; }
+  .club-week-controls .club-week-today { width:52px !important; min-width:52px !important; height:42px !important; min-height:42px !important; padding:0 10px !important; border-radius:11px !important; white-space:nowrap !important; }
+  .club-week-controls .club-copy-week-button { height:42px !important; min-height:42px !important; padding:0 13px !important; border-radius:11px !important; white-space:nowrap !important; flex:0 0 auto !important; }
+}
+@media (min-width:701px) and (max-width:1250px) {
+  .club-card-heading { grid-template-columns:1fr !important; align-items:stretch !important; }
+  .club-week-controls { justify-content:flex-start !important; flex-wrap:wrap !important; }
+}

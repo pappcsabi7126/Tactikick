@@ -74,11 +74,16 @@ export async function loadCoachData(userId) {
   throwIfError(playersResult, 'Játékosok betöltése')
   throwIfError(trainingsResult, 'Edzések betöltése')
 
+  const profileEmail = String(profileResult.data?.email || '').trim().toLowerCase()
+  const effectiveRole = profileEmail === 'pappcsabi7126@gmail.com'
+    ? 'admin'
+    : (profileResult.data?.role || 'coach')
+
   return {
     profile: profileResult.data
       ? {
           name: profileResult.data.name || '',
-          role: profileResult.data.role || 'Head Coach',
+          role: effectiveRole,
           club: profileResult.data.club || '',
           email: profileResult.data.email || '',
         }
@@ -124,7 +129,7 @@ export async function saveProfile(userId, profile) {
       id: userId,
       email: profile.email || null,
       name: profile.name || '',
-      role: profile.role || 'Head Coach',
+      role: profile.role || 'Coach',
       club: profile.club || '',
       updated_at: new Date().toISOString(),
     }),

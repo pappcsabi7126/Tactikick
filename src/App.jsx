@@ -262,9 +262,10 @@ function App() {
         setTrainings(merged.trainings)
 
         const nextProfile = data?.profile || migrationSource.profile
+        const effectiveEmail = String(nextProfile?.email || session.user.email || '').trim().toLowerCase()
         setProfile({
           name: nextProfile?.name || '',
-          role: nextProfile?.role || 'coach',
+          role: effectiveEmail === 'pappcsabi7126@gmail.com' ? 'admin' : (nextProfile?.role || 'coach'),
           club: nextProfile?.club || '',
           email: nextProfile?.email || session.user.email || '',
         })
@@ -771,7 +772,7 @@ function App() {
             <div className="avatar">{profile.name?.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'CS'}</div>
             <div className="user-details">
               <strong>{profile.name}</strong>
-              <span>{profile.role || 'Head Coach'}</span>
+              <span>{profile.role === 'admin' ? 'Admin' : (profile.role || 'Coach')}</span>
             </div>
           </button>
 
@@ -804,14 +805,20 @@ function App() {
 
       <nav className="mobile-bottom-nav" aria-label="Mobil navigáció">
         {[
-          ['dashboard', '⌂', t('home')],
-          ['club', '♜', t('club')],
-          ['teams', '♙', t('teams')],
-          ['trainings', '◉', t('trainings')],
-          ['calendar', '◈', t('calendar')],
-        ].map(([id, icon, label]) => (
-          <button key={id} type="button" className={activePage === id ? 'active' : ''} onClick={() => navigate(id)}>
-            <span>{icon}</span>
+          ['dashboard', t('home')],
+          ['club', t('club')],
+          ['teams', t('teams')],
+          ['trainings', t('trainings')],
+          ['calendar', t('calendar')],
+        ].map(([id, label]) => (
+          <button key={id} type="button" className={activePage === id ? 'active' : ''} onClick={() => navigate(id)} aria-current={activePage === id ? 'page' : undefined}>
+            <span className="mobile-nav-icon" aria-hidden="true">
+              {id === 'dashboard' && <svg viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8v9.2a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>}
+              {id === 'club' && <svg viewBox="0 0 24 24"><path d="M6 20h12M8 20V7h8v13M10 7V4h4v3M5 10h3M16 10h3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 13h4M10 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+              {id === 'teams' && <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="17" cy="9" r="2.3" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M3.5 20c.5-4 2.7-6 5.5-6s5 2 5.5 6M14 15c2.8-.1 4.8 1.4 5.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>}
+              {id === 'trainings' && <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+              {id === 'calendar' && <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M7 3v4M17 3v4M3 10h18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M8 14h2M14 14h2M8 17h2M14 17h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>}
+            </span>
             <small>{label}</small>
           </button>
         ))}
@@ -2583,9 +2590,10 @@ function ProfilePage({
 
     if (!form.name.trim()) return
 
+    const profileEmail = String(profile.email || '').trim().toLowerCase()
     const updatedProfile = {
       name: form.name.trim(),
-      role: form.role.trim() || 'coach',
+      role: profileEmail === 'pappcsabi7126@gmail.com' ? 'admin' : (form.role.trim() || 'coach'),
       club: form.club.trim(),
       email: form.email.trim(),
     }
@@ -2614,7 +2622,7 @@ function ProfilePage({
           </h1>
 
           <p>
-            {profile.role}
+            {profile.role === 'admin' ? 'Admin' : profile.role}
             {profile.club
               ? ` · ${profile.club}`
               : ' · TactiKick'}
@@ -2786,14 +2794,15 @@ function ProfilePage({
 
                 <input
                   type="text"
-                  value={form.role}
+                  value={String(profile.email || '').trim().toLowerCase() === 'pappcsabi7126@gmail.com' ? 'Admin' : form.role}
                   onChange={(event) =>
                     updateField(
                       'role',
                       event.target.value,
                     )
                   }
-                  placeholder="Pl. Head Coach"
+                  placeholder="Pl. Coach"
+                  readOnly={String(profile.email || '').trim().toLowerCase() === 'pappcsabi7126@gmail.com'}
                 />
               </div>
 
