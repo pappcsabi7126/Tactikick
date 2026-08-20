@@ -123,7 +123,7 @@ export default function AuthScreen() {
           <p>{mode === 'login' ? 'Jelentkezz be, hogy elérd a csapataidat és edzéseidet.' : 'Hozd létre a saját edzői fiókodat néhány lépésben.'}</p>
         </div>
 
-        <button className="auth-discord auth-google" type="button" onClick={google} disabled={loading}>
+        <button className="auth-google" type="button" onClick={google} disabled={loading}>
           <span className="google-mark">G</span> Folytatás Google-fiókkal
         </button>
 

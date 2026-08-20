@@ -39,10 +39,17 @@ export async function signUpWithEmail(email, password) {
 export async function signInWithGoogle() {
   if (!supabase) throw new Error('A Supabase nincs konfigurálva.')
 
+  // Keep the exact page the user started Google login from.
+  // Supabase will return to this URL after OAuth, so the app does not
+  // unexpectedly send users back to the dashboard/home page.
+  const returnUrl = new URL(window.location.href)
+  returnUrl.hash = ''
+  returnUrl.search = ''
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin,
+      redirectTo: returnUrl.toString(),
       queryParams: {
         access_type: 'offline',
         prompt: 'select_account',
