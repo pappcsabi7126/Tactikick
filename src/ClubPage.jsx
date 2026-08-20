@@ -171,6 +171,70 @@ function eventUsesSameArea(a, b) {
   }))
 }
 
+
+function layoutDayEvents(dayEvents) {
+  const sorted = [...dayEvents].sort(
+    (a, b) =>
+      minutes(a.start) - minutes(b.start) ||
+      minutes(a.end) - minutes(b.end) ||
+      String(a.id).localeCompare(String(b.id)),
+  )
+
+  const clusters = []
+  let current = []
+  let clusterEnd = -1
+
+  sorted.forEach((event) => {
+    const start = minutes(event.start)
+    const end = minutes(event.end)
+
+    if (!current.length || start < clusterEnd) {
+      current.push(event)
+      clusterEnd = Math.max(clusterEnd, end)
+      return
+    }
+
+    clusters.push(current)
+    current = [event]
+    clusterEnd = end
+  })
+
+  if (current.length) clusters.push(current)
+
+  const result = new Map()
+
+  clusters.forEach((cluster) => {
+    const columns = []
+
+    cluster.forEach((event) => {
+      const start = minutes(event.start)
+      let columnIndex = columns.findIndex((columnEnd) => columnEnd <= start)
+
+      if (columnIndex < 0) {
+        columnIndex = columns.length
+        columns.push(minutes(event.end))
+      } else {
+        columns[columnIndex] = minutes(event.end)
+      }
+
+      result.set(event.id, {
+        columnIndex,
+        columnCount: columns.length,
+      })
+    })
+
+    // A later event can increase the cluster's column count. All events
+    // in that overlap cluster must use the final count so they stay aligned.
+    const finalColumnCount = Math.max(columns.length, 1)
+    cluster.forEach((event) => {
+      const item = result.get(event.id)
+      result.set(event.id, { ...item, columnCount: finalColumnCount })
+    })
+  })
+
+  return result
+}
+
 function readStorage(key, fallback) {
   try {
     const value = localStorage.getItem(key)
@@ -528,10 +592,9 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
 
     if (conflict) {
       showToast(
-        `Ütközés: ${eventLocationLabel(conflict, pitches)} már foglalt ${conflict.start}–${conflict.end} között.`,
-        'error',
+        `Figyelem: ${eventLocationLabel(conflict, pitches)} már használatban van ${conflict.start}–${conflict.end} között. Az edzés ettől még menthető.`,
+        'warning',
       )
-      return
     }
 
     const nextEvents = editingEvent
@@ -809,7 +872,13 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
   }
 
   const eventFormDate = editingEvent?.date || weekDays[0]?.dateKey
-  const memberList = members || []
+  const memberList = [...(members || [])].sort((a, b) =>
+    String(a?.name || a?.email || '').localeCompare(
+      String(b?.name || b?.email || ''),
+      'hu',
+      { sensitivity: 'base' },
+    )
+  )
 
   return (
     <div className="page club-page">
@@ -993,8 +1062,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
 
                     {(() => {
                       const dayEvents = visibleEvents.filter((event) => event.date === day.dateKey)
-                      const laneIds = [...new Set(dayEvents.flatMap((event) => event.pitchIds || [event.pitchId]).filter(Boolean))]
-                      const laneCount = Math.max(laneIds.length, 1)
+                      const layout = layoutDayEvents(dayEvents)
 
                       return dayEvents.map((event) => {
                         const top = Math.max(
@@ -1005,13 +1073,11 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
                           7,
                           ((minutes(event.end) - minutes(event.start)) / (14 * 60)) * 100,
                         )
-                        const eventPitchIds = event.pitchIds || [event.pitchId]
-                        const indices = eventPitchIds
-                          .map((pitchId) => laneIds.indexOf(pitchId))
-                          .filter((index) => index >= 0)
-                        const lane = indices.length ? Math.min(...indices) : 0
-                        const lastLane = indices.length ? Math.max(...indices) : lane
-                        const width = ((lastLane - lane + 1) / laneCount) * 100
+                        const { columnIndex, columnCount } = layout.get(event.id) || {
+                          columnIndex: 0,
+                          columnCount: 1,
+                        }
+                        const width = 100 / columnCount
 
                         return (
                           <button
@@ -1022,7 +1088,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
                             style={{
                               top: `${Math.min(93, top)}%`,
                               height: `${Math.min(42, height)}%`,
-                              left: `calc(${lane * width}% + 4px)`,
+                              left: `calc(${columnIndex * width}% + 4px)`,
                               width: `calc(${width}% - 8px)`,
                             }}
                             onClick={() => openEvent(event)}
@@ -1243,7 +1309,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
       {toast && (
         <div className={`club-toast club-toast-${toast.type}`} role="status" aria-live="polite">
           <span className="club-toast-icon" aria-hidden="true">
-            {toast.type === 'error' ? '!' : toast.type === 'info' ? 'i' : '✓'}
+            {toast.type === 'error' || toast.type === 'warning' ? '!' : toast.type === 'info' ? 'i' : '✓'}
           </span>
           <span>{toast.message}</span>
           <button type="button" onClick={() => setToast(null)} aria-label="Bezárás">×</button>

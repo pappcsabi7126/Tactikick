@@ -11,6 +11,7 @@ import {
 import AuthScreen from './AuthScreen'
 import './App.css'
 import './attendance.css'
+import { downloadAttendancePdf } from './attendancePdf'
 import { cloudEnabled, getCurrentSession, loadCoachData, saveProfile, signOut, subscribeToAuth, syncCoachData, deleteCoachTeam, deleteCoachPlayer, deleteCoachTraining } from './dataService'
 
 function readLegacyBusinessData() {
@@ -161,6 +162,7 @@ function App() {
   const [selectedTeam, setSelectedTeam] = useState(() => initialRoute.teamId ? { id: initialRoute.teamId } : null)
   const [openTrainingChooserOnTeam, setOpenTrainingChooserOnTeam] = useState(false)
   const [openTrainingModeOnTeam, setOpenTrainingModeOnTeam] = useState(null)
+  const [openAttendanceTrainingId, setOpenAttendanceTrainingId] = useState(null)
   const [showTrainingCreationChooser, setShowTrainingCreationChooser] = useState(false)
   const [trainingCreationTeam, setTrainingCreationTeam] = useState(null)
 
@@ -255,7 +257,22 @@ function App() {
         const legacy = readLegacyBusinessData()
         const legacyBelongsToThisUser = !legacy.owner || legacy.owner === session.user.id
         const migrationSource = legacyBelongsToThisUser ? legacy : { teams: [], players: [], trainings: [], profile: null, hasBusinessData: false }
-        const merged = mergeCoachData(data, migrationSource)
+        // If Supabase unexpectedly returns an entirely empty dataset after a
+        // refresh while a verified local backup exists, keep the user's data
+        // visible instead of replacing it with an empty state. The normal
+        // non-empty cloud response remains the source of truth.
+        const cloudIsEmpty =
+          Array.isArray(data?.teams) && data.teams.length === 0 &&
+          Array.isArray(data?.players) && data.players.length === 0 &&
+          Array.isArray(data?.trainings) && data.trainings.length === 0
+        const useLocalBackup = cloudIsEmpty && migrationSource.hasBusinessData
+        const merged = useLocalBackup
+          ? {
+              teams: migrationSource.teams,
+              players: migrationSource.players,
+              trainings: migrationSource.trainings,
+            }
+          : mergeCoachData(data, migrationSource)
 
         setTeams(merged.teams)
         setPlayers(merged.players)
@@ -475,6 +492,7 @@ function App() {
     setActivePage(page)
     setOpenTrainingChooserOnTeam(false)
     setOpenTrainingModeOnTeam(null)
+    setOpenAttendanceTrainingId(null)
     setShowTrainingCreationChooser(false)
     setTrainingCreationTeam(null)
     if (page !== 'team') setSelectedTeam(null)
@@ -486,6 +504,7 @@ function App() {
     setSelectedTeam(team)
     setOpenTrainingChooserOnTeam(Boolean(options.openTrainingChooser))
     setOpenTrainingModeOnTeam(options.openTrainingMode || null)
+    setOpenAttendanceTrainingId(options.openAttendanceTrainingId || null)
     setShowTrainingCreationChooser(false)
     setTrainingCreationTeam(null)
     setActivePage('team')
@@ -496,6 +515,7 @@ function App() {
     setSelectedTeam(null)
     setOpenTrainingChooserOnTeam(false)
     setOpenTrainingModeOnTeam(null)
+    setOpenAttendanceTrainingId(null)
     setShowTrainingCreationChooser(false)
     setTrainingCreationTeam(null)
     setActivePage('teams')
@@ -638,17 +658,25 @@ function App() {
   // Derived data only; keep this out of Hooks because App() has
   // early returns for auth/loading states. Attendance is calculated
   // from the attendance stored on each training, not from stale player fields.
-  const playersWithStats = players.map((player) => {
-    const stats = getPlayerAttendanceStats(player.id, trainings, player.teamId)
-    return {
-      ...player,
-      attendance: stats.attendance,
-      trainings: stats.trainings || Number(player.trainings || 0),
-      present: stats.trainings ? stats.present : Number(player.present || 0),
-      absent: stats.trainings ? stats.absent : Number(player.absent || 0),
-      excused: stats.excused,
-    }
-  })
+  const playersWithStats = players
+    .map((player) => {
+      const stats = getPlayerAttendanceStats(player.id, trainings, player.teamId)
+      return {
+        ...player,
+        attendance: stats.attendance,
+        trainings: stats.trainings || Number(player.trainings || 0),
+        present: stats.trainings ? stats.present : Number(player.present || 0),
+        absent: stats.trainings ? stats.absent : Number(player.absent || 0),
+        excused: stats.excused,
+      }
+    })
+    .sort((a, b) =>
+      String(a?.name || '').localeCompare(
+        String(b?.name || ''),
+        'hu-HU',
+        { sensitivity: 'base', numeric: true },
+      ),
+    )
 
   const teamsWithStats = teams.map((team) => {
     const teamPlayers = playersWithStats.filter((player) => player.teamId === team.id)
@@ -809,6 +837,7 @@ function App() {
           ['club', t('club')],
           ['teams', t('teams')],
           ['trainings', t('trainings')],
+          ['attendance', t('attendance')],
           ['calendar', t('calendar')],
         ].map(([id, label]) => (
           <button key={id} type="button" className={activePage === id ? 'active' : ''} onClick={() => navigate(id)} aria-current={activePage === id ? 'page' : undefined}>
@@ -817,6 +846,7 @@ function App() {
               {id === 'club' && <svg viewBox="0 0 24 24"><path d="M6 20h12M8 20V7h8v13M10 7V4h4v3M5 10h3M16 10h3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 13h4M10 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
               {id === 'teams' && <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="17" cy="9" r="2.3" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M3.5 20c.5-4 2.7-6 5.5-6s5 2 5.5 6M14 15c2.8-.1 4.8 1.4 5.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>}
               {id === 'trainings' && <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+              {id === 'attendance' && <svg viewBox="0 0 24 24"><path d="M5 4.5h14v15H5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8 8h8M8 12h8M8 16h4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><path d="m16 15 1.3 1.3L20 13.6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               {id === 'calendar' && <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M7 3v4M17 3v4M3 10h18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M8 14h2M14 14h2M8 17h2M14 17h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>}
             </span>
             <small>{label}</small>
@@ -930,6 +960,7 @@ function App() {
             onBack={closeTeam}
             openTrainingChooser={openTrainingChooserOnTeam}
             openTrainingMode={openTrainingModeOnTeam}
+            openAttendanceTrainingId={openAttendanceTrainingId}
             language={language}
           />
         )}
@@ -1736,7 +1767,7 @@ function CalendarPage({ t, trainings, setTrainings, teams, onOpenTeam, language 
           {selectedDate && selectedEvents.length === 0 && <div><p className="calendar-empty">{t('noEventsDay')}</p><button className="secondary-button" onClick={() => openEventForm()}>+ {t('eventForDay')}</button></div>}
           {selectedEvents.map((event) => {
             const team = teams.find((item) => item.id === event.teamId)
-            return <button className="calendar-event-detail" key={event.id} onClick={() => team && onOpenTeam(team)}>
+            return <button className="calendar-event-detail" key={event.id} onClick={() => setSelectedTraining(training)}>
               <div className={`calendar-event-dot ${event.color || 'purple'}`} /><div><strong>{event.title}</strong><span>{team?.name || t('team')} · {event.startTime}–{event.endTime}</span></div><span>→</span>
             </button>
           })}
@@ -1882,6 +1913,13 @@ function StatisticsPage({ t, teams, players, trainings }) {
 ===================================================== */
 
 function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewTraining, onEditTraining, onDeleteTraining }) {
+  const [selectedTraining, setSelectedTraining] = useState(null)
+  const sortedTrainings = trainings.slice().sort((a, b) => {
+    const aKey = `${a.date || ''}T${a.startTime || ''}`
+    const bKey = `${b.date || ''}T${b.startTime || ''}`
+    return bKey.localeCompare(aKey)
+  })
+
   return (
     <div className="page">
       <div className="hero-header">
@@ -1904,12 +1942,12 @@ function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewT
         </button>
       ) : (
         <div className="training-overview-list">
-          {trainings.map((training) => {
+          {sortedTrainings.map((training) => {
             const team = teams.find((item) => item.id === training.teamId)
 
             return (
               <div className="training-overview-card training-overview-card-actionable" key={training.id}>
-                <button className="training-overview-main" type="button" onClick={() => team && onOpenTeam(team)}>
+                <button className="training-overview-main" type="button" onClick={() => setSelectedTraining(training)}>
                   <div className="training-overview-date">
                     <span>{training.date.slice(5, 7)}.</span>
                     <strong>{training.date.slice(8, 10)}</strong>
@@ -1928,6 +1966,43 @@ function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewT
               </div>
             )
           })}
+        </div>
+      )}
+
+      {selectedTraining && (
+        <div className="training-choice-backdrop" onClick={() => setSelectedTraining(null)}>
+          <div className="training-choice-modal" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="training-choice-close" onClick={() => setSelectedTraining(null)}>×</button>
+            <div className="eyebrow">EDZÉS</div>
+            <h2>{selectedTraining.title || 'Edzés'}</h2>
+            <p>
+              {selectedTraining.date} · {selectedTraining.startTime}–{selectedTraining.endTime}
+            </p>
+            <div className="training-choice-actions">
+              <button
+                type="button"
+                className="neon-button"
+                onClick={() => {
+                  const team = teams.find((item) => item.id === selectedTraining.teamId)
+                  setSelectedTraining(null)
+                  if (team) onOpenTeam(team)
+                }}
+              >
+                ⚽ Edzés megnyitása
+              </button>
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => {
+                  const team = teams.find((item) => item.id === selectedTraining.teamId)
+                  setSelectedTraining(null)
+                  if (team) onOpenTeam(team, { openAttendanceTrainingId: selectedTraining.id })
+                }}
+              >
+                ✓ Jelenléti ív
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -1960,7 +2035,7 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
       selectedTeamId === null ? true : player.teamId === selectedTeamId,
     )
     .slice()
-    .sort((a, b) => a.name.localeCompare(b.name, 'hu'))
+    .sort((a, b) => a.name.localeCompare(b.name, 'hu-HU', { sensitivity: 'base', numeric: true }))
 
   const monthTrainings = trainings
     .filter((training) => {
@@ -1972,6 +2047,7 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
       )
     })
     .slice()
+    // Havi jelenléti ív: hónap eleje balra, hónap vége jobbra.
     .sort((a, b) =>
       `${a.date}T${a.startTime || ''}`.localeCompare(
         `${b.date}T${b.startTime || ''}`,
@@ -2021,6 +2097,22 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
   const teamAttendance = countedTotal
     ? Math.round((totals.present / countedTotal) * 100)
     : 0
+
+  async function handleDownloadAttendancePdf() {
+    if (!monthTrainings.length || !visiblePlayers.length) return
+    const selectedTeam = selectedTeamId === null
+      ? null
+      : teams.find((team) => team.id === selectedTeamId)
+
+    await downloadAttendancePdf({
+      teamName: selectedTeam?.name || 'Minden csapat',
+      monthName,
+      monthTrainings,
+      visiblePlayers,
+      allTeams: teams,
+      selectedTeamId,
+    })
+  }
 
   return (
     <div className="page attendance-page">
@@ -2075,13 +2167,23 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
             </button>
           </div>
 
-          <button
-            type="button"
-            className="secondary-button attendance-today-button"
-            onClick={goToCurrentMonth}
-          >
-            {t('currentMonth')}
-          </button>
+          <div className="attendance-toolbar-actions">
+            <button
+              type="button"
+              className="secondary-button attendance-today-button"
+              onClick={goToCurrentMonth}
+            >
+              {t('currentMonth')}
+            </button>
+            <button
+              type="button"
+              className="neon-button attendance-pdf-download"
+              onClick={handleDownloadAttendancePdf}
+              disabled={!monthTrainings.length || !visiblePlayers.length}
+            >
+              ↓ PDF jelenléti ív
+            </button>
+          </div>
         </div>
 
         <div className="attendance-summary">

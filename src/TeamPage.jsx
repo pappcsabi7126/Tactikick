@@ -35,6 +35,7 @@ export default function TeamPage({
   onBack,
   openTrainingChooser = false,
   openTrainingMode = null,
+  openAttendanceTrainingId = null,
   language = 'hu',
 }) {
   const [activeTab, setActiveTab] = useState('players')
@@ -140,7 +141,9 @@ export default function TeamPage({
     },
   ])
 
-  const players = sharedPlayers || localPlayers
+  const players = [...(sharedPlayers || localPlayers)].sort((a, b) =>
+    String(a?.name || '').localeCompare(String(b?.name || ''), 'hu-HU', { sensitivity: 'base', numeric: true })
+  )
 
   const [localTrainings, setLocalTrainings] = useState([
     {
@@ -206,13 +209,21 @@ export default function TeamPage({
   ])
 
   const allTrainings = sharedTrainings || localTrainings
-  const trainings = sharedTrainings
+  const trainings = (sharedTrainings
     ? allTrainings.filter((training) => training.teamId === team.id)
-    : allTrainings
+    : allTrainings).slice().sort((a, b) => `${b.date || ''}T${b.startTime || ''}`.localeCompare(`${a.date || ''}T${a.startTime || ''}`))
   const setTrainings = setSharedTrainings || setLocalTrainings
 
   const [selectedTrainingId, setSelectedTrainingId] =
     useState(null)
+
+  useEffect(() => {
+    if (!openAttendanceTrainingId) return
+    const target = trainings.find((training) => String(training.id) === String(openAttendanceTrainingId))
+    if (!target) return
+    setSelectedTrainingId(target.id)
+    setActiveTab('attendance')
+  }, [openAttendanceTrainingId, trainings])
 
   const [selectedTrainingDetails, setSelectedTrainingDetails] =
     useState(null)
