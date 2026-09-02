@@ -2339,11 +2339,6 @@ function SettingsPage({
   const [form, setForm] = useState(profile)
   const [notifications, setNotifications] = useState(true)
   const [reminders, setReminders] = useState(true)
-  const [defaultTime, setDefaultTime] = useState(
-    '17:00',
-  )
-  const [defaultDuration, setDefaultDuration] =
-    useState('90')
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
@@ -2365,8 +2360,6 @@ function SettingsPage({
       JSON.stringify({
         notifications,
         reminders,
-        defaultTime,
-        defaultDuration,
       }),
     )
 
@@ -2552,49 +2545,6 @@ function SettingsPage({
           />
         </section>
 
-        <section className="settings-card">
-          <div className="settings-card-heading">
-            <span>⚙</span>
-            <div>
-              <strong>{t('defaults')}</strong>
-              <small>
-                {t('defaultsDescription')}
-              </small>
-            </div>
-          </div>
-
-          <div className="settings-form-grid">
-            <div className="form-group">
-              <label>{t('defaultTrainingTime')}</label>
-              <select
-                value={defaultTime}
-                onChange={(event) =>
-                  setDefaultTime(event.target.value)
-                }
-              >
-                <option>16:00</option>
-                <option>17:00</option>
-                <option>18:00</option>
-                <option>19:00</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>{t('trainingLength')}</label>
-              <select
-                value={defaultDuration}
-                onChange={(event) =>
-                  setDefaultDuration(event.target.value)
-                }
-              >
-                <option value="60">60 {t('minutes')}</option>
-                <option value="75">75 {t('minutes')}</option>
-                <option value="90">90 {t('minutes')}</option>
-                <option value="120">120 {t('minutes')}</option>
-              </select>
-            </div>
-          </div>
-        </section>
       </div>
     </form>
   )

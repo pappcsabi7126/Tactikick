@@ -297,9 +297,9 @@
 }
 
 .new-training-choice-modal {
-  width: min(720px, calc(100vw - 32px));
-  max-width: 720px;
-  padding: 42px;
+  width: min(620px, calc(100vw - 32px));
+  max-width: 620px;
+  padding: 38px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   background:
     linear-gradient(
@@ -355,7 +355,7 @@
 
 .new-training-choice-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-top: 30px;
 }
@@ -512,25 +512,6 @@
   background: rgba(99, 102, 241, 0.18);
 }
 
-
-.new-training-choice-card.ai .new-training-choice-icon {
-  background: rgba(217, 70, 239, 0.12);
-  border-color: rgba(217, 70, 239, 0.22);
-}
-
-.new-training-choice-card.ai:hover {
-  border-color: rgba(217, 70, 239, 0.58);
-  background:
-    linear-gradient(
-      145deg,
-      rgba(217, 70, 239, 0.13),
-      rgba(255, 255, 255, 0.025)
-    );
-}
-
-.new-training-choice-card.ai:hover .new-training-choice-arrow {
-  background: rgba(217, 70, 239, 0.18);
-}
 
 /* A választómodal világos témában is illeszkedjen az alapértelmezett UI-hoz. */
 .light-theme .new-training-choice-backdrop {

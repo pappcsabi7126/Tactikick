@@ -285,7 +285,6 @@ function isPrimaryManager(profile) {
 function buildTrainingEvents(trainings, teams) {
   return (trainings || [])
     .filter((training) => training.date)
-    .slice(0, 80)
     .map((training, index) => {
       const team = teams.find((item) => item.id === training.teamId)
       const pitch = DEFAULT_PITCHES[index % DEFAULT_PITCHES.length]
@@ -384,7 +383,17 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     [trainings, teams],
   )
 
-  const baseEvents = localEvents ?? derivedEvents
+  const baseEvents = useMemo(() => {
+    if (localEvents === null) return derivedEvents
+
+    // A training is canonical in the personal calendar. Always rebuild its
+    // club-calendar representation from the latest training data, while
+    // preserving events that were created directly in the club calendar.
+    const clubOnlyEvents = (localEvents || []).filter(
+      (event) => event.sourceTrainingId == null,
+    )
+    return [...clubOnlyEvents, ...derivedEvents]
+  }, [localEvents, derivedEvents])
 
   const events = useMemo(
     () => (baseEvents || []).map((event) => normalizeEvent({
@@ -510,6 +519,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
         ...event,
         id: `local-event-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
         date: nextDate,
+        sourceTrainingId: undefined,
       })
       copiedCount += 1
     })
@@ -532,6 +542,10 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
 
   function openEventEditor(event = null) {
     if (!isClubManager) return
+    if (event?.sourceTrainingId != null) {
+      showToast('Ezt az eseményt az edzés hozta létre. Az edzésnaptárban tudod módosítani.', 'info')
+      return
+    }
     setDetailEvent(null)
     setEditingEvent(event)
     setModal('event')
@@ -608,6 +622,10 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
 
     const event = events.find((item) => item.id === eventId)
     if (!event) return
+    if (event.sourceTrainingId != null) {
+      showToast('Ezt az eseményt az edzés hozta létre. Az edzés törlésével együtt fog eltűnni.', 'info')
+      return
+    }
 
     if (!window.confirm(`Biztosan törlöd ezt az eseményt?\n\n${event.title} · ${event.start}–${event.end}`)) {
       return

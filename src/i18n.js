@@ -312,10 +312,6 @@ const translations = {
     attendanceNotificationsDescription:
       'Értesítés új vagy módosított jelenléti adatoknál.',
 
-    defaults: 'Alapértelmezések',
-    defaultsDescription: 'Gyorsabb edzéslétrehozás',
-    defaultTrainingTime: 'ALAPÉRTELMEZETT EDZÉSIDŐ',
-    trainingLength: 'EDZÉS HOSSZA',
 
     // Profile
     coachProfile: 'COACH PROFILE',
@@ -553,10 +549,6 @@ const translations = {
     attendanceNotificationsDescription:
       'Notify me when attendance data changes.',
 
-    defaults: 'Defaults',
-    defaultsDescription: 'Faster training creation',
-    defaultTrainingTime: 'DEFAULT TRAINING TIME',
-    trainingLength: 'TRAINING LENGTH',
 
     coachProfile: 'COACH PROFILE',
     editProfile: 'Edit profile',
@@ -656,10 +648,12 @@ export function saveLanguage(language) {
 export function getTranslations(language) {
   const base = translations[language] || translations.hu
   const team = teamTranslations[language] || teamTranslations.hu
+  const app = languages[language] || languages.hu
 
   return {
     ...base,
     ...team,
+    ...app,
   }
 }
 

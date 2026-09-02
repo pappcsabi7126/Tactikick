@@ -22,13 +22,10 @@ function statusSymbol(status) {
   return '✓'
 }
 
-function formatDate(date) {
-  if (!date) return '—'
-  return new Date(`${date}T12:00:00`).toLocaleDateString('hu-HU', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
+function formatMonthDay(date) {
+  const match = String(date || '').match(/^\d{4}-(\d{2})-(\d{2})$/)
+  if (!match) return '—'
+  return `${match[1]}. ${match[2]}.`
 }
 
 export async function downloadAttendancePdf({
@@ -82,7 +79,7 @@ export async function downloadAttendancePdf({
 
   const headerCells = trainingColumns.map((training) => `
     <th>
-      <strong>${escapeHtml(formatDate(training.date).slice(0, 5))}</strong>
+      <strong>${escapeHtml(formatMonthDay(training.date))}</strong>
       <span>${escapeHtml(training.startTime || '—')}</span>
     </th>
   `).join('')
