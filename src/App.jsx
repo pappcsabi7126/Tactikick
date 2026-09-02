@@ -2191,6 +2191,10 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
         </div>
 
         {monthTrainings.length > 0 && visiblePlayers.length > 0 ? (
+          <div className="attendance-table-section">
+            <div className="attendance-mobile-scroll-hint" aria-hidden="true">
+              <span>←</span> Edzésnapok görgetése <span>→</span>
+            </div>
           <div className="attendance-table-wrap">
             <table className="attendance-table">
               <thead>
@@ -2300,6 +2304,7 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
                 })}
               </tbody>
             </table>
+          </div>
           </div>
         ) : (
           <div className="attendance-empty">

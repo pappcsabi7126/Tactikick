@@ -392,7 +392,25 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     const clubOnlyEvents = (localEvents || []).filter(
       (event) => event.sourceTrainingId == null,
     )
-    return [...clubOnlyEvents, ...derivedEvents]
+    const trainingOverrides = new Map(
+      (localEvents || [])
+        .filter((event) => event.sourceTrainingId != null)
+        .map((event) => [String(event.sourceTrainingId), event]),
+    )
+    const syncedTrainings = derivedEvents.map((trainingEvent) => {
+      const override = trainingOverrides.get(String(trainingEvent.sourceTrainingId))
+      if (!override) return trainingEvent
+      return {
+        ...trainingEvent,
+        pitchId: override.pitchId,
+        pitchIds: override.pitchIds,
+        locations: override.locations,
+        coach: override.coach || trainingEvent.coach,
+        notes: override.notes || '',
+        goal: override.goal || '',
+      }
+    })
+    return [...clubOnlyEvents, ...syncedTrainings]
   }, [localEvents, derivedEvents])
 
   const events = useMemo(
@@ -417,6 +435,19 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     const teamMatch = selectedTeam === 'all' || String(event.teamId || '') === String(selectedTeam)
     return pitchMatch && teamMatch
   })
+
+  const calendarRange = (() => {
+    if (!visibleEvents.length) return { startHour: 16, endHour: 20, hourCount: 4 }
+    const firstMinute = Math.min(...visibleEvents.map((event) => minutes(event.start)))
+    const lastMinute = Math.max(...visibleEvents.map((event) => minutes(event.end)))
+    let startHour = Math.max(0, Math.floor(firstMinute / 60) - 1)
+    let endHour = Math.min(24, Math.ceil(lastMinute / 60) + 1)
+    if (endHour - startHour < 4) {
+      endHour = Math.min(24, startHour + 4)
+      startHour = Math.max(0, endHour - 4)
+    }
+    return { startHour, endHour, hourCount: endHour - startHour }
+  })()
 
   const upcoming = [...visibleEvents]
     .sort((a, b) => `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`))
@@ -542,10 +573,6 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
 
   function openEventEditor(event = null) {
     if (!isClubManager) return
-    if (event?.sourceTrainingId != null) {
-      showToast('Ezt az eseményt az edzés hozta létre. Az edzésnaptárban tudod módosítani.', 'info')
-      return
-    }
     setDetailEvent(null)
     setEditingEvent(event)
     setModal('event')
@@ -573,6 +600,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     }
 
     const next = {
+      ...(editingEvent || {}),
       id,
       date: String(form.get('date')),
       pitchId: locations[0].pitchId,
@@ -1053,7 +1081,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
             <div className="club-calendar-grid">
               <div className="club-time-column">
                 <div className="club-grid-corner">IDŐ</div>
-                {Array.from({ length: 15 }, (_, index) => index + 8).map((hour) => (
+                 {Array.from({ length: calendarRange.hourCount }, (_, index) => index + calendarRange.startHour).map((hour) => (
                   <div key={hour}>{String(hour).padStart(2, '0')}:00</div>
                 ))}
               </div>
@@ -1070,8 +1098,8 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
                     </span>
                   </div>
 
-                  <div className="club-day-body">
-                    {Array.from({ length: 15 }, (_, index) => index + 8).map((hour) => (
+                   <div className="club-day-body" style={{ height: `${calendarRange.hourCount * 56}px` }}>
+                     {Array.from({ length: calendarRange.hourCount }, (_, index) => index + calendarRange.startHour).map((hour) => (
                       <div className="club-hour-line" key={hour} />
                     ))}
 
@@ -1082,11 +1110,11 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
                       return dayEvents.map((event) => {
                         const top = Math.max(
                           0,
-                          ((minutes(event.start) - 8 * 60) / (14 * 60)) * 100,
+                           ((minutes(event.start) - calendarRange.startHour * 60) / (calendarRange.hourCount * 60)) * 100,
                         )
                         const height = Math.max(
                           7,
-                          ((minutes(event.end) - minutes(event.start)) / (14 * 60)) * 100,
+                           ((minutes(event.end) - minutes(event.start)) / (calendarRange.hourCount * 60)) * 100,
                         )
                         const { columnIndex, columnCount } = layout.get(event.id) || {
                           columnIndex: 0,
@@ -1523,7 +1551,9 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
             <div className="player-modal-eyebrow">KLUBNAPTÁR</div>
             <h2>{editingEvent ? 'Esemény szerkesztése' : 'Új esemény'}</h2>
             <p className="player-modal-position">
-              Az esemény a klub minden edzője számára megjelenik.
+              {editingEvent?.sourceTrainingId != null
+                ? 'Az edzés alapadatai automatikusan követik az edzésnaptárt. Itt a pályát, az edzőt és a klubos megjegyzéseket módosíthatod.'
+                : 'Az esemény a klub minden edzője számára megjelenik.'}
             </p>
 
             <div className="player-form">
@@ -1534,18 +1564,20 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
                   defaultValue={editingEvent?.title || ''}
                   placeholder="Pl. U13 edzés"
                   required
+                  readOnly={editingEvent?.sourceTrainingId != null}
                 />
               </div>
 
               <div className="player-form-row">
                 <div className="form-group">
                   <label>DÁTUM</label>
-                  <input name="date" type="date" defaultValue={eventFormDate} required />
+                  <input name="date" type="date" defaultValue={eventFormDate} required readOnly={editingEvent?.sourceTrainingId != null} />
                 </div>
 
                 <div className="form-group">
                   <label>TÍPUS</label>
-                  <select name="kind" defaultValue={editingEvent?.kind || 'training'}>
+                  {editingEvent?.sourceTrainingId != null && <input type="hidden" name="kind" value={editingEvent.kind || 'training'} />}
+                  <select name="kind" defaultValue={editingEvent?.kind || 'training'} disabled={editingEvent?.sourceTrainingId != null}>
                     {EVENT_TYPES.map((type) => (
                       <option key={type.value} value={type.value}>{type.label}</option>
                     ))}
@@ -1561,6 +1593,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
                     defaultValue={editingEvent?.team || teams[0]?.name || ''}
                     placeholder="U13"
                     required
+                    readOnly={editingEvent?.sourceTrainingId != null}
                   />
                 </div>
 
@@ -1643,12 +1676,12 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
               <div className="player-form-row">
                 <div className="form-group">
                   <label>KEZDÉS</label>
-                  <input name="start" type="time" defaultValue={editingEvent?.start || '17:00'} required />
+                  <input name="start" type="time" defaultValue={editingEvent?.start || '17:00'} required readOnly={editingEvent?.sourceTrainingId != null} />
                 </div>
 
                 <div className="form-group">
                   <label>VÉGE</label>
-                  <input name="end" type="time" defaultValue={editingEvent?.end || '18:30'} required />
+                  <input name="end" type="time" defaultValue={editingEvent?.end || '18:30'} required readOnly={editingEvent?.sourceTrainingId != null} />
                 </div>
               </div>
 
@@ -1673,7 +1706,7 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
             </div>
 
             <div className="player-form-actions">
-              {editingEvent && (
+              {editingEvent && editingEvent.sourceTrainingId == null && (
                 <button
                   type="button"
                   className="danger-button"
