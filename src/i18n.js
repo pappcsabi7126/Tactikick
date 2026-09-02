@@ -295,6 +295,7 @@ const translations = {
     name: 'NÉV',
     role: 'POZÍCIÓ',
     email: 'EMAIL',
+    club: 'KLUB',
 
     appearance: 'Megjelenés',
     appearanceDescription:
@@ -536,6 +537,7 @@ const translations = {
     name: 'NAME',
     role: 'ROLE',
     email: 'EMAIL',
+    club: 'CLUB',
 
     appearance: 'Appearance',
     appearanceDescription:

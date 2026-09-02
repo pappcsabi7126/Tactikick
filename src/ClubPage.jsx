@@ -125,6 +125,9 @@ function eventLocationLabel(event, pitches) {
   return locations.map((location) => {
     const pitch = pitches.find((item) => item.id === location.pitchId)
     if (!pitch) return null
+    const zones = (location.zoneIds || [])
+      .map((zoneId) => pitch.zones?.find((zone) => zone.id === zoneId))
+      .filter(Boolean)
     return locationDisplayLabel(location, pitches)
   }).filter(Boolean).join(' · ')
 }
