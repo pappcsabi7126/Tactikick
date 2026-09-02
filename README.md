@@ -1,39 +1,45 @@
-# React + Vite
+# TactiKick
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Edzői és klubmenedzsment alkalmazás csapatok, játékosok, edzések, jelenlét, klubnaptár és PDF-export kezeléséhez.
 
-Currently, two official plugins are available:
+## Fejlesztés
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Követelmény: Node.js 20 vagy újabb.
 
-## React Compiler
+```bash
+npm install
+copy .env.example .env
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-## Data storage
-
-Existing browser data remains under the legacy `coachapp-*` localStorage keys. After Supabase is configured, the signed-in account syncs teams first, then players, then trainings so foreign-key relationships remain valid.
-## New account behavior
-
-A new Supabase account starts with empty teams, players, trainings, and training templates. Legacy browser data is migrated only when the stored account owner or profile email matches the signed-in account; it is never claimed by a different account.
-
-## Fontos: Supabase adatok megőrzése
-
-A TactiKick üzleti adatai (csapatok, játékosok, edzések) Supabase-ból töltődnek be. A kliens nem törli a régi `localStorage` kulcsokat, és nem indít szinkronizálást addig, amíg az aktuális felhasználó adatai sikeresen be nem töltődtek.
-
-Ha a Supabase kapcsolat hiányzik, az alkalmazás ezt külön jelzi, és nem jelenít meg megtévesztő üres állapotot.
-
-### Local futtatás
-
-A projekt mellett legyen egy `.env` fájl a következőkkel:
+Az `.env` fájlban egy Supabase projekt URL-je és publishable kulcsa szükséges:
 
 ```env
 VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 ```
 
-A `.env` fájlt ne commitold GitHubra. A repositoryhoz a `.env.example` tartozik.
+Az `.env` nincs verziókezelés alatt. Privilegizált `service_role` kulcsot soha ne tegyél kliensoldali környezeti változóba.
+
+## Ellenőrzések
+
+```bash
+npm run lint
+npm run build
+npm run check
+```
+
+## Adatok
+
+- A profilok, csapatok, játékosok, edzések és edzéssablonok Supabase-ben tárolódnak.
+- A böngésző helyi mentése biztonsági tartalék és korábbi CoachApp-adatok migrációjára szolgál.
+- A klubnaptár, pályák és klubtag-beállítások jelenleg böngészőnként, `localStorage`-ban tárolódnak.
+- A Supabase sémát a `supabase-schema.sql` fájl tartalmazza, RLS szabályokkal együtt.
+
+## Telepítés
+
+A repository Netlify-konfigurációt és SPA redirectet tartalmaz. Telepítéskor a két `VITE_SUPABASE_*` változót a szolgáltató környezeti beállításaiban is meg kell adni.
+
+Build parancs: `npm run build`
+
+Publikálandó könyvtár: `dist`

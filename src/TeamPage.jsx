@@ -64,11 +64,6 @@ export default function TeamPage({
       return
     }
 
-    if (openTrainingMode === 'ai') {
-      openAIPlanner()
-      return
-    }
-
     setShowNewTrainingChoice(true)
   }, [openTrainingChooser, openTrainingMode])
 
@@ -77,7 +72,6 @@ export default function TeamPage({
   const [templatesLoading, setTemplatesLoading] = useState(false)
   const [templateSaving, setTemplateSaving] = useState(false)
   const [templateName, setTemplateName] = useState('')
-  const [templateToDelete, setTemplateToDelete] = useState(null)
 
   const [showAIPlanner, setShowAIPlanner] = useState(false)
   const [aiResult, setAiResult] = useState(null)
@@ -566,13 +560,6 @@ export default function TeamPage({
      TRAININGS
   ===================================================== */
 
-  function updateNewTraining(field, value) {
-    setNewTraining((current) => ({
-      ...current,
-      [field]: value,
-    }))
-  }
-
   function openNewTrainingChoice() {
     setShowNewTrainingChoice(true)
   }
@@ -804,7 +791,6 @@ export default function TeamPage({
       setTrainingTemplates((current) =>
         current.filter((item) => item.id !== template.id),
       )
-      setTemplateToDelete(null)
     } catch (error) {
       console.error(error)
       window.alert(error.message || t('templateDeleteError'))
@@ -820,20 +806,6 @@ export default function TeamPage({
       ...current,
       [field]: value,
     }))
-  }
-
-  function openAIPlanner() {
-    setAiResult(null)
-    setAiGenerating(false)
-
-    setAiSettings({
-      duration: '90',
-      objective: 'Labdakihozatal',
-      intensity: 'Közepes',
-      extraRequest: '',
-    })
-
-    setShowAIPlanner(true)
   }
 
   function closeAIPlanner() {
@@ -1035,14 +1007,6 @@ export default function TeamPage({
       }
       }),
     )
-  }
-
-  function saveAttendance() {
-    setAttendanceSaved(true)
-
-    setTimeout(() => {
-      setAttendanceSaved(false)
-    }, 2500)
   }
 
   const attendanceStats = players.reduce(
@@ -1341,12 +1305,6 @@ export default function TeamPage({
                       <strong>
                         {training.title}
                       </strong>
-
-                      {training.aiGenerated && (
-                        <span className="ai-training-badge">
-                          AI
-                        </span>
-                      )}
 
                     </div>
 
@@ -2187,10 +2145,6 @@ export default function TeamPage({
           onLibrary={() => {
             setShowNewTrainingChoice(false)
             openTrainingLibrary()
-          }}
-          onAI={() => {
-            setShowNewTrainingChoice(false)
-            openAIPlanner()
           }}
         />
       )}

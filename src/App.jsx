@@ -420,17 +420,6 @@ function App() {
     setGlobalTrainingToDelete(null)
   }
 
-  function createTrainingFromAI(training) {
-    setTrainings((current) => [training, ...current])
-    const createdTeam = teamsWithStats.find((item) => item.id === training.teamId)
-    if (createdTeam) {
-      setSelectedTeam(createdTeam)
-      setActivePage('team')
-    } else {
-      setActivePage('trainings')
-    }
-  }
-
   useEffect(() => {
     if (!authLoading) {
       document.documentElement.setAttribute('data-coachapp-ready', 'true')
@@ -696,15 +685,6 @@ function App() {
 
   const totalPlayers = players.length
 
-  const averageAttendance = playersWithStats.length
-    ? Math.round(
-        playersWithStats.reduce(
-          (sum, player) => sum + (Number(player.attendance) || 0),
-          0,
-        ) / playersWithStats.length,
-      )
-    : 0
-
   const todayKey = new Date().toISOString().slice(0, 10)
 
   const pageTitles = {
@@ -717,7 +697,6 @@ function App() {
     statistics: t('statistics'),
     settings: t('settings'),
     profile: t('profile'),
-    ai: t('aiTraining'),
     team: selectedTeam?.name || t('teams'),
   }
 
@@ -752,7 +731,6 @@ function App() {
             >
               <span className="nav-icon">{item.icon}</span>
               <span className="nav-label">{item.label}</span>
-              {item.ai && <span className="ai-badge">AI</span>}
             </button>
           ))}
         </nav>
@@ -971,7 +949,6 @@ function App() {
             onClose={closeTrainingCreationChooser}
             onPlan={() => openTrainingCreationMode('plan')}
             onLibrary={() => openTrainingCreationMode('library')}
-            onAI={() => openTrainingCreationMode('ai')}
           />
         )}
 
@@ -1767,7 +1744,7 @@ function CalendarPage({ t, trainings, setTrainings, teams, onOpenTeam, language 
           {selectedDate && selectedEvents.length === 0 && <div><p className="calendar-empty">{t('noEventsDay')}</p><button className="secondary-button" onClick={() => openEventForm()}>+ {t('eventForDay')}</button></div>}
           {selectedEvents.map((event) => {
             const team = teams.find((item) => item.id === event.teamId)
-            return <button className="calendar-event-detail" key={event.id} onClick={() => setSelectedTraining(training)}>
+            return <button className="calendar-event-detail" key={event.id} onClick={() => team && onOpenTeam(team)}>
               <div className={`calendar-event-dot ${event.color || 'purple'}`} /><div><strong>{event.title}</strong><span>{team?.name || t('team')} · {event.startTime}–{event.endTime}</span></div><span>→</span>
             </button>
           })}
@@ -2229,10 +2206,6 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
                       weekday: 'short',
                     }).replace('.', '')
 
-                    const team = teams.find(
-                      (item) => item.id === training.teamId,
-                    )
-
                     return (
                       <th
                         key={training.id}
@@ -2258,14 +2231,12 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
                 {visiblePlayers.map((player) => {
                   let present = 0
                   let absent = 0
-                  let excused = 0
 
                   monthTrainings.forEach((training) => {
                     const status = getStatus(training, player.id)
 
                     if (status === 'present') present += 1
                     if (status === 'absent') absent += 1
-                    if (status === 'excused') excused += 1
                   })
 
                   const counted = present + absent

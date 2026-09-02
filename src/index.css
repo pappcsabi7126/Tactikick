@@ -1,7 +1,5 @@
 @import './coachapp-pages.css';
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
-@import './ai-planner.css';
-
 /* CoachOS core styles */
 
 
@@ -27,6 +25,47 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, #8bff5a 72%, white);
+  outline-offset: 3px;
+}
+
+.fatal-error {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #07090d;
+  color: #f7faf7;
+}
+
+.fatal-error-card {
+  width: min(520px, 100%);
+  padding: clamp(28px, 6vw, 48px);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 24px;
+  background: #10141c;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .4);
+  text-align: center;
+}
+
+.fatal-error-card h1 { margin: 10px 0; font-size: clamp(26px, 5vw, 40px); }
+.fatal-error-card p:not(.eyebrow) { margin: 0 auto 24px; color: #aab4aa; line-height: 1.6; }
+.fatal-error-mark { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 18px; border-radius: 50%; background: rgba(255, 88, 88, .12); color: #ff7676; font-size: 28px; font-weight: 800; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
 
 button {

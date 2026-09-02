@@ -241,11 +241,6 @@ async function syncTable(table, userId, rows, mapRow) {
   // project is still on that schema, retry only the teams write with the old
   // column rather than losing the whole save operation.
   if (error && table === 'teams' && /age_group|column.*age|schema cache/i.test(error.message || '')) {
-    payload = rows.map((row) => ({
-      ...mapRow(row),
-      user_id: userId,
-      age_group: row.age || row.age_group || '',
-    }))
     // Rebuild cleanly so we never send both columns to PostgREST.
     payload = rows.map((row) => ({
       id: row.id,
@@ -298,7 +293,7 @@ export async function syncCoachData(userId, { teams, players, trainings }) {
   await syncTable('teams', userId, teams, (team) => ({
     id: team.id,
     name: team.name || '',
-    age_group: team.age || team.age_group || '',
+    age: team.age || team.age_group || '',
     color: team.color || 'purple',
     updated_at: new Date().toISOString(),
   }))
