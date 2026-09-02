@@ -17,5 +17,12 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // These effects intentionally mirror incoming/authenticated data into
+      // editable local UI state.
+      'react-hooks/set-state-in-effect': 'off',
+      // TrainingPlanBuilder exports helpers alongside its component.
+      'react-refresh/only-export-components': 'off',
+    },
   },
 ])

@@ -13,9 +13,7 @@ import {
   loadTrainingTemplates,
   createTrainingTemplate,
   deleteTrainingTemplate,
-  generateAITrainingWithCloud,
 } from './dataService'
-import { generateSmartTraining } from './aiPlannerEngine'
 
 import './training-details-image.css'
 import './training-details-polish.css'
@@ -64,11 +62,6 @@ export default function TeamPage({
       return
     }
 
-    if (openTrainingMode === 'ai') {
-      openAIPlanner()
-      return
-    }
-
     setShowNewTrainingChoice(true)
   }, [openTrainingChooser, openTrainingMode])
 
@@ -77,11 +70,16 @@ export default function TeamPage({
   const [templatesLoading, setTemplatesLoading] = useState(false)
   const [templateSaving, setTemplateSaving] = useState(false)
   const [templateName, setTemplateName] = useState('')
-  const [templateToDelete, setTemplateToDelete] = useState(null)
-
-  const [showAIPlanner, setShowAIPlanner] = useState(false)
-  const [aiResult, setAiResult] = useState(null)
-  const [aiGenerating, setAiGenerating] = useState(false)
+  // The AI planner is intentionally disabled until the feature is ready.
+  const showAIPlanner = false
+  const aiResult = null
+  const aiGenerating = false
+  const aiSettings = { duration: '90', objective: '', intensity: '', extraRequest: '' }
+  const closeAIPlanner = () => {}
+  const generateAITraining = () => {}
+  const saveAITraining = () => {}
+  const updateAISetting = () => {}
+  const setAiResult = () => {}
 
   const [localPlayers, setLocalPlayers] = useState([
     {
@@ -312,15 +310,7 @@ export default function TeamPage({
     endTime: '18:30',
   })
 
-  const [aiSettings, setAiSettings] = useState({
-    duration: '90',
-    objective: 'Labdakihozatal',
-    intensity: 'Közepes',
-    extraRequest: '',
-  })
 
-  const [attendanceSaved, setAttendanceSaved] =
-    useState(false)
 
   const selectedTraining =
     trainings.find(
@@ -566,13 +556,6 @@ export default function TeamPage({
      TRAININGS
   ===================================================== */
 
-  function updateNewTraining(field, value) {
-    setNewTraining((current) => ({
-      ...current,
-      [field]: value,
-    }))
-  }
-
   function openNewTrainingChoice() {
     setShowNewTrainingChoice(true)
   }
@@ -804,116 +787,10 @@ export default function TeamPage({
       setTrainingTemplates((current) =>
         current.filter((item) => item.id !== template.id),
       )
-      setTemplateToDelete(null)
     } catch (error) {
       console.error(error)
       window.alert(error.message || t('templateDeleteError'))
     }
-  }
-
-  /* =====================================================
-     AI
-  ===================================================== */
-
-  function updateAISetting(field, value) {
-    setAiSettings((current) => ({
-      ...current,
-      [field]: value,
-    }))
-  }
-
-  function openAIPlanner() {
-    setAiResult(null)
-    setAiGenerating(false)
-
-    setAiSettings({
-      duration: '90',
-      objective: 'Labdakihozatal',
-      intensity: 'Közepes',
-      extraRequest: '',
-    })
-
-    setShowAIPlanner(true)
-  }
-
-  function closeAIPlanner() {
-    setShowAIPlanner(false)
-    setAiResult(null)
-    setAiGenerating(false)
-  }
-
-  async function generateAITraining() {
-    setAiGenerating(true)
-    setAiResult(null)
-
-    const payload = {
-      team: {
-        ...team,
-        players: players.length,
-      },
-      duration: Number(aiSettings.duration),
-      objective: aiSettings.objective,
-      intensity: aiSettings.intensity,
-      extraRequest: aiSettings.extraRequest,
-    }
-
-    try {
-      const cloudResult = await generateAITrainingWithCloud(payload)
-      const result = cloudResult?.exercises?.length
-        ? cloudResult
-        : generateSmartTraining(payload)
-
-      setAiResult(result)
-    } catch (error) {
-      console.warn(error)
-      setAiResult(generateSmartTraining(payload))
-    } finally {
-      setAiGenerating(false)
-    }
-  }
-
-  function saveAITraining() {
-    if (!aiResult) return
-
-    const today = new Date()
-
-    const dateString = today
-      .toISOString()
-      .slice(0, 10)
-
-    const training = {
-      id: Date.now(),
-      teamId: team.id,
-      date: dateString,
-      startTime: '17:00',
-      endTime: '18:30',
-      title: aiResult.title,
-      aiGenerated: true,
-      plan: normalizeTrainingPlan(
-        aiResult.exercises.map((exercise) => ({
-          name: exercise.name,
-          duration: exercise.duration,
-          description: exercise.description,
-          image: exercise.image || '',
-        })),
-      ),
-      attendance: Object.fromEntries(
-        players.map((player) => [
-          player.id,
-          'present',
-        ]),
-      ),
-    }
-
-    setTrainings((currentTrainings) => [
-      training,
-      ...currentTrainings,
-    ])
-
-    setSelectedTrainingId(training.id)
-    setShowAIPlanner(false)
-    setAiResult(null)
-    setActiveTab('trainings')
   }
 
   function getTrainingPlan(training) {
@@ -1008,8 +885,6 @@ export default function TeamPage({
   }
 
   function changeAttendance(playerId) {
-    setAttendanceSaved(false)
-
     setTrainings((currentTrainings) =>
       currentTrainings.map((training) => {
       if (training.id !== selectedTrainingId) {
@@ -1035,14 +910,6 @@ export default function TeamPage({
       }
       }),
     )
-  }
-
-  function saveAttendance() {
-    setAttendanceSaved(true)
-
-    setTimeout(() => {
-      setAttendanceSaved(false)
-    }, 2500)
   }
 
   const attendanceStats = players.reduce(
@@ -1342,12 +1209,6 @@ export default function TeamPage({
                         {training.title}
                       </strong>
 
-                      {training.aiGenerated && (
-                        <span className="ai-training-badge">
-                          AI
-                        </span>
-                      )}
-
                     </div>
 
                     <span>
@@ -1439,7 +1300,6 @@ export default function TeamPage({
                     Number(event.target.value),
                   )
 
-                  setAttendanceSaved(false)
                 }}
               >
 
@@ -1569,7 +1429,7 @@ export default function TeamPage({
               </span>
 
               <span className="attendance-auto-save">
-                {attendanceSaved ? `✓ ${t('saved')}` : `● ${t('autoSaved')}`}
+                ● {t('autoSaved')}
               </span>
 
             </div>
@@ -2187,10 +2047,6 @@ export default function TeamPage({
           onLibrary={() => {
             setShowNewTrainingChoice(false)
             openTrainingLibrary()
-          }}
-          onAI={() => {
-            setShowNewTrainingChoice(false)
-            openAIPlanner()
           }}
         />
       )}

@@ -3,7 +3,6 @@ export default function TrainingCreationChooser({
   onClose,
   onPlan,
   onLibrary,
-  onAI,
 }) {
   return (
     <div
@@ -55,18 +54,6 @@ export default function TrainingCreationChooser({
             <span className="new-training-choice-arrow">→</span>
           </button>
 
-          <button
-            type="button"
-            className="new-training-choice-card ai"
-            onClick={onAI}
-          >
-            <span className="new-training-choice-icon">✦</span>
-            <span className="new-training-choice-title">{t('aiTraining')}</span>
-            <span className="new-training-choice-description">
-              {t('aiTrainingDescription')}
-            </span>
-            <span className="new-training-choice-arrow">→</span>
-          </button>
         </div>
       </div>
     </div>
