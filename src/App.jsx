@@ -1891,7 +1891,11 @@ function StatisticsPage({ t, teams, players, trainings }) {
 
 function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewTraining, onEditTraining, onDeleteTraining }) {
   const [selectedTraining, setSelectedTraining] = useState(null)
-  const sortedTrainings = trainings.slice().sort((a, b) => {
+  const [teamFilter, setTeamFilter] = useState('all')
+  const filteredTrainings = teamFilter === 'all'
+    ? trainings
+    : trainings.filter((training) => String(training.teamId) === teamFilter)
+  const sortedTrainings = filteredTrainings.slice().sort((a, b) => {
     const aKey = `${a.date || ''}T${a.startTime || ''}`
     const bKey = `${b.date || ''}T${b.startTime || ''}`
     return bKey.localeCompare(aKey)
@@ -1905,17 +1909,26 @@ function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewT
           <h1>{t('trainings')}</h1>
           <p>{t('allTrainings')}</p>
         </div>
-        <div className="training-page-actions">
-          <button className="neon-button" onClick={onOpenNewTraining}>+ {t('newTraining')}</button>
-          <button className="secondary-button" onClick={() => onNavigate('calendar')}>{t('calendar')} →</button>
+        <div className="training-page-header-tools">
+          <label className="training-team-filter">
+            <span>{t('team').toUpperCase()}</span>
+            <select value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
+              <option value="all">{t('allTeams')}</option>
+              {teams.map((team) => <option key={team.id} value={String(team.id)}>{team.name} · {team.age}</option>)}
+            </select>
+          </label>
+          <div className="training-page-actions">
+            <button className="neon-button" onClick={onOpenNewTraining}>+ {t('newTraining')}</button>
+            <button className="secondary-button" onClick={() => onNavigate('calendar')}>{t('calendar')} →</button>
+          </div>
         </div>
       </div>
 
-      {trainings.length === 0 ? (
+      {filteredTrainings.length === 0 ? (
         <button className="training-empty-state" onClick={onOpenNewTraining}>
           <div className="training-empty-plus">+</div>
-          <strong>{t('newTraining')}</strong>
-          <span>{t('createTraining')}</span>
+          <strong>{trainings.length ? t('noTrainingsForTeam') : t('newTraining')}</strong>
+          <span>{trainings.length ? t('chooseOtherTeam') : t('createTraining')}</span>
         </button>
       ) : (
         <div className="training-overview-list">

@@ -653,7 +653,12 @@
 
 
 .training-page-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.training-page-header-tools { display:flex; align-items:flex-end; justify-content:flex-end; gap:14px; flex-wrap:wrap; }
+.training-team-filter { display:flex; flex-direction:column; gap:6px; min-width:230px; }
+.training-team-filter span { color:var(--text-muted); font-size:8px; font-weight:800; letter-spacing:.12em; }
+.training-team-filter select { min-height:42px; padding:0 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface-1); color:var(--text-strong); }
 @media (max-width: 760px) { .training-page-actions { width: 100%; } .training-page-actions > button { flex: 1 1 100%; } }
+@media (max-width: 760px) { .training-page-header-tools,.training-team-filter { width:100%; } .training-page-header-tools { align-items:stretch; } }
 
 
 .legacy-recovery-banner {

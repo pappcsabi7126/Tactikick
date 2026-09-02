@@ -65,6 +65,8 @@ export const languages = {
     savedChanges: '✓ Mentve',
     currentAverageAttendance: 'aktuális átlag',
     noData: 'Nincs adat',
+    noTrainingsForTeam: 'Ehhez a csapathoz még nincs edzés',
+    chooseOtherTeam: 'Válassz másik csapatot, vagy hozz létre egy új edzést.',
     noTeam: 'Csapat',
 
 
@@ -132,6 +134,8 @@ export const languages = {
     savedChanges: '✓ Saved',
     currentAverageAttendance: 'current average',
     noData: 'No data',
+    noTrainingsForTeam: 'This team has no training sessions yet',
+    chooseOtherTeam: 'Choose another team or create a new training session.',
     noTeam: 'Team',
 
 

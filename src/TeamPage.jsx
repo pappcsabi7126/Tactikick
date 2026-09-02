@@ -72,6 +72,12 @@ export default function TeamPage({
   const [templatesLoading, setTemplatesLoading] = useState(false)
   const [templateSaving, setTemplateSaving] = useState(false)
   const [templateName, setTemplateName] = useState('')
+  const [libraryNotice, setLibraryNotice] = useState(null)
+
+  function showLibraryNotice(message, type = 'success') {
+    setLibraryNotice({ message, type })
+    window.setTimeout(() => setLibraryNotice(null), 2800)
+  }
 
   const [showAIPlanner, setShowAIPlanner] = useState(false)
   const [aiResult, setAiResult] = useState(null)
@@ -717,7 +723,7 @@ export default function TeamPage({
       setTrainingTemplates(templates)
     } catch (error) {
       console.error(error)
-      window.alert(error.message || t('libraryLoadError'))
+      showLibraryNotice(error.message || t('libraryLoadError'), 'error')
     } finally {
       setTemplatesLoading(false)
     }
@@ -764,10 +770,10 @@ export default function TeamPage({
 
       setTrainingTemplates((current) => [created, ...current])
       setTemplateName('')
-      window.alert(t('trainingSavedToLibrary'))
+      showLibraryNotice(t('trainingSavedToLibrary'))
     } catch (error) {
       console.error(error)
-      window.alert(error.message || t('trainingSaveError'))
+      showLibraryNotice(error.message || t('trainingSaveError'), 'error')
     } finally {
       setTemplateSaving(false)
     }
@@ -793,7 +799,7 @@ export default function TeamPage({
       )
     } catch (error) {
       console.error(error)
-      window.alert(error.message || t('templateDeleteError'))
+      showLibraryNotice(error.message || t('templateDeleteError'), 'error')
     }
   }
 
@@ -1035,6 +1041,16 @@ export default function TeamPage({
 
   return (
     <div className="team-page">
+
+      {libraryNotice && (
+        <div
+          className={`training-library-notice ${libraryNotice.type === 'error' ? 'error' : ''}`}
+          role={libraryNotice.type === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {libraryNotice.message}
+        </div>
+      )}
 
       {/* BACK */}
 

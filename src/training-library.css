@@ -159,3 +159,28 @@
     width: 100%;
   }
 }
+/* In-app feedback replaces blocking browser alert dialogs. */
+.training-library-notice {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(390px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid rgba(34,197,94,.24);
+  border-radius: 13px;
+  background: #101a14;
+  color: #dff8e7;
+  box-shadow: 0 18px 55px rgba(0,0,0,.28);
+  font-size: 12px;
+  font-weight: 700;
+}
+.training-library-notice::before { content:'✓'; color:#4ade80; font-size:17px; }
+.training-library-notice.error { border-color:rgba(239,68,68,.3); background:#211315; color:#fee2e2; }
+.training-library-notice.error::before { content:'!'; color:#fb7185; }
+.light-theme .training-library-notice { background:#f3fbf5; color:#166534; box-shadow:0 18px 55px rgba(23,33,27,.16); }
+.light-theme .training-library-notice.error { background:#fff5f5; color:#b91c1c; }
+@media(max-width:600px){.training-library-notice{right:16px;bottom:88px;}}
