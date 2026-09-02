@@ -601,9 +601,7 @@ export async function downloadTrainingPdf({
   const html2pdfModule = await import('html2pdf.js')
   const html2pdf = html2pdfModule.default || html2pdfModule
 
-  const fileName = `${safeFileName(teamName)}-${safeFileName(
-    title,
-  )}-${training?.date || 'edzes'}.pdf`
+  const fileName = `${safeFileName(teamName)}-${training?.date || 'edzes'}.pdf`
 
   await html2pdf()
     .set({

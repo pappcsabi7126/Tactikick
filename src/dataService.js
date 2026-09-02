@@ -474,3 +474,44 @@ export async function createTrainingFromTemplate(userId, template, training) {
       : [],
   }
 }
+
+export async function sendPasswordResetEmail(email) {
+  if (!supabase) throw new Error('A Supabase nincs konfigurálva.')
+  const returnUrl = new URL(window.location.origin)
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: returnUrl.toString(),
+  })
+  if (error) throw error
+}
+
+export async function loadClubData(userId) {
+  if (!supabase || !userId) return null
+  const result = await supabase.from('club_settings').select('*').eq('user_id', userId).maybeSingle()
+  throwIfError(result, 'Klubadatok betöltése')
+  if (!result.data) return null
+  return {
+    clubName: result.data.club_name || '',
+    logo: result.data.logo || '',
+    pitches: result.data.pitches || [],
+    events: result.data.events ?? null,
+    members: result.data.members ?? null,
+    invites: result.data.invites || [],
+  }
+}
+
+export async function saveClubData(userId, club) {
+  if (!supabase || !userId) return
+  throwIfError(
+    await supabase.from('club_settings').upsert({
+      user_id: userId,
+      club_name: club.clubName || '',
+      logo: club.logo || '',
+      pitches: club.pitches || [],
+      events: club.events,
+      members: club.members,
+      invites: club.invites || [],
+      updated_at: new Date().toISOString(),
+    }),
+    'Klubadatok mentése',
+  )
+}

@@ -1891,7 +1891,22 @@ function StatisticsPage({ t, teams, players, trainings }) {
 
 function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewTraining, onEditTraining, onDeleteTraining }) {
   const [selectedTraining, setSelectedTraining] = useState(null)
-  const [teamFilter, setTeamFilter] = useState('all')
+  const [teamFilter, setTeamFilter] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tactikick-training-team-filter') || 'all'
+      return saved === 'all' || teams.some((team) => String(team.id) === saved) ? saved : 'all'
+    } catch {
+      return 'all'
+    }
+  })
+  function changeTeamFilter(value) {
+    setTeamFilter(value)
+    try {
+      localStorage.setItem('tactikick-training-team-filter', value)
+    } catch {
+      // The filter still works when browser storage is unavailable.
+    }
+  }
   const filteredTrainings = teamFilter === 'all'
     ? trainings
     : trainings.filter((training) => String(training.teamId) === teamFilter)
@@ -1912,9 +1927,13 @@ function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewT
         <div className="training-page-header-tools">
           <label className="training-team-filter">
             <span>{t('team').toUpperCase()}</span>
-            <select value={teamFilter} onChange={(event) => setTeamFilter(event.target.value)}>
+            <select value={teamFilter} onChange={(event) => changeTeamFilter(event.target.value)}>
               <option value="all">{t('allTeams')}</option>
-              {teams.map((team) => <option key={team.id} value={String(team.id)}>{team.name} · {team.age}</option>)}
+              {teams.map((team) => (
+                <option key={team.id} value={String(team.id)}>
+                  {team.name}{team.age ? ` · ${team.age}` : ''}
+                </option>
+              ))}
             </select>
           </label>
           <div className="training-page-actions">

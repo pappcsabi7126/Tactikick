@@ -112,6 +112,24 @@ create policy teams_all_own on public.teams for all using (auth.uid() = user_id)
 create policy players_all_own on public.players for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy trainings_all_own on public.trainings for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+-- Club calendar, pitches and membership prototype data. This replaces the
+-- browser-only storage while keeping one private club workspace per account.
+create table if not exists public.club_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  club_name text not null default '',
+  logo text not null default '',
+  pitches jsonb not null default '[]'::jsonb,
+  events jsonb,
+  members jsonb,
+  invites jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.club_settings enable row level security;
+drop policy if exists club_settings_all_own on public.club_settings;
+create policy club_settings_all_own on public.club_settings
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 -- Profile row is created automatically for new users.
 create or replace function public.handle_new_user()
 returns trigger
