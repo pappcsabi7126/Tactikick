@@ -10,11 +10,19 @@
 .match-planner .mp-player { flex-direction: row; align-items: center; padding: 12px; border: 1px solid #dce5df; border-radius: 12px; cursor: pointer; }
 .mp-player input { width: 20px; height: 20px; accent-color: #16964f; }
 .mp-player small { display: block; margin-top: 5px; font-weight: 400; }
-.mp-pitch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 16px; padding: 28px 18px; border: 3px solid #c1e4cb; border-radius: 14px; background: repeating-linear-gradient(0deg, #25784b 0px, #25784b 85px, #2a8151 85px, #2a8151 170px); color: white; }
-.mp-pitch label:last-child { grid-column: 2; }
+.mp-pitch-scroll { overflow-x: auto; margin-top: 16px; }
+.mp-pitch { display: flex; flex-direction: column; gap: 28px; min-width: 640px; padding: 28px 18px; border: 3px solid #c1e4cb; border-radius: 14px; background: repeating-linear-gradient(0deg, #25784b 0px, #25784b 85px, #2a8151 85px, #2a8151 170px); color: white; }
+.mp-pitch-row { display: flex; justify-content: space-evenly; gap: 12px; }
+.mp-position { flex: 0 1 220px; min-width: 0; width: 100%; }
+.match-planner .mp-replacement { font-size: 12px; margin-top: 10px; color: #e1f5e6; }
+.match-planner .mp-replacement select { min-height: 38px; font-size: 12px; padding: 8px; }
+.mp-summary-pitch .mp-position { text-align: center; padding: 10px 4px; }
+.mp-summary-pitch strong, .mp-summary-pitch small { display: block; margin-top: 7px; overflow-wrap: anywhere; }
+.mp-summary-pitch small { font-size: 12px; font-weight: 400; }
+.match-planner button:disabled { opacity: .55; cursor: not-allowed; }
 .mp-bench { display: flex; flex-wrap: wrap; gap: 10px; }
 .mp-bench span { border: 1px solid #bdcfc4; border-radius: 20px; padding: 8px 14px; }
 .mp-sub { display: flex; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid #dce5df; }
 .mp-sub span { flex: 1; }
 .match-planner [role=alert] { color: #b42727; }
-@media(max-width: 600px) { .mp-card { padding: 16px; } .mp-pitch { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 16px 10px; gap: 16px 8px; } .mp-pitch label:last-child { grid-column: 1 / -1; } .mp-sub { flex-wrap: wrap; } }
+@media(max-width: 600px) { .mp-card { padding: 16px; } .mp-pitch { padding: 16px 10px; } .mp-sub { flex-wrap: wrap; } }
