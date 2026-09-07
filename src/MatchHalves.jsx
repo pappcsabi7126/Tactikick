@@ -6,6 +6,7 @@ export default function MatchHalves({ match, plan, halves, update, teamName }) {
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState('')
   const warnings = validateHalves(halves)
+  const roster = [...plan.squad].sort((a, b) => a.name.localeCompare(b.name, 'hu'))
   const saveHalf = (index, half) => update({ halves: halves.map((current, i) => i === index ? half : current) })
   const playerName = (id) => plan.squad.find((player) => String(player.id) === String(id))?.name || 'Üres poszt'
   return <>
@@ -32,6 +33,9 @@ export default function MatchHalves({ match, plan, halves, update, teamName }) {
       {error && <p role="alert">{error}</p>}
       <button type="button" className="neon-button" disabled={exporting || warnings.length > 0} onClick={async () => { setExporting(true); setError(''); try { await downloadMatchPdf({ match, plan, halves, teamName }) } catch { setError('A PDF letöltése nem sikerült. Próbáld újra.') } finally { setExporting(false) } }}>{exporting ? 'PDF készítése…' : 'Összegző letöltése PDF-ben'}</button>
       <div className="mp-summary">{halves.map((half, index) => <div key={index}><h3>{index + 1}. félidő · {half.formation}</h3><div className="mp-pitch-scroll"><div className="mp-pitch mp-summary-pitch">{formationRows[half.formation].map((row, rowIndex) => <div className="mp-pitch-row" key={rowIndex}>{row.map((position) => <div className="mp-position" key={position}><span>{position}</span><strong>{playerName(half.starters[position])}</strong><small>{half.replacements[position] ? `↳ ${playerName(half.replacements[position])} · ${(index * 2 + 1) * plan.duration / 4}. perc` : 'Marad a következő negyedre'}</small></div>)}</div>)}</div></div></div>)}</div>
+    </section>
+    <section className="mp-card"><h2>Meccskeret névsora · {roster.length} játékos</h2>
+      {roster.length ? <ol className="mp-roster">{roster.map((player) => <li key={player.id}>{player.name}</li>)}</ol> : <p>Még nincs játékos a keretben.</p>}
     </section>
   </>
 }

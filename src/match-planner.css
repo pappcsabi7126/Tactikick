@@ -21,6 +21,8 @@
 .mp-summary-pitch small { font-size: 12px; font-weight: 400; }
 .match-planner button:disabled { opacity: .55; cursor: not-allowed; }
 .mp-bench { display: flex; flex-wrap: wrap; gap: 10px; }
+.mp-roster { columns: 2 240px; padding-left: 26px; margin: 0; }
+.mp-roster li { padding: 7px 12px 7px 0; break-inside: avoid; overflow-wrap: anywhere; line-height: 1.5; }
 .mp-bench span { border: 1px solid #bdcfc4; border-radius: 20px; padding: 8px 14px; }
 .mp-sub { display: flex; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid #dce5df; }
 .mp-sub span { flex: 1; }

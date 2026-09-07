@@ -3,6 +3,7 @@ import { formationRows, quarterLineup } from './matchPlan.js'
 const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
 
 export function matchPdfHtml({ match, plan, halves, teamName }) {
+  const roster = [...plan.squad].sort((a, b) => a.name.localeCompare(b.name, 'hu'))
   const name = (id) => escapeHtml(plan.squad.find((player) => String(player.id) === String(id))?.name || 'Üres poszt')
   return `<div style="font-family:Arial,sans-serif;color:#173c2b;background:white;width:740px;padding:20px;box-sizing:border-box">
     ${halves.map((half, index) => `<section style="${index ? 'break-before:page;page-break-before:always;' : ''}padding:5px 0">
@@ -19,6 +20,10 @@ export function matchPdfHtml({ match, plan, halves, teamName }) {
       ${[half.starters, quarterLineup(half)].map((lineup, quarter) => `<div style="break-inside:avoid"><h3 style="font-size:14px;margin:16px 0 6px">${index * 2 + quarter + 1}. negyed – kispad</h3><p style="font-size:12px;line-height:1.6">${plan.squad.filter((player) => !Object.values(lineup).includes(String(player.id))).map((player) => escapeHtml(player.name)).join(' · ') || 'Nincs cserejátékos.'}</p></div>`).join('')}
       <p style="font-size:10px;margin-top:18px">TACTIKICK · Meccsterv · K: kapus; V: védő; BK/KK/JK: középpályás; CS: csatár; SZ: szélső; B/J: bal/jobb.</p>
     </section>`).join('')}
+    <div style="border-top:1px solid #c6d9cd;margin-top:14px;padding-top:12px">
+      <h2 style="font-size:16px;break-after:avoid">Meccskeret névsora · ${roster.length} játékos</h2>
+      ${roster.length ? `<ol style="font-size:12px;line-height:1.6;padding-left:24px;margin:0">${roster.map((player) => `<li style="break-inside:avoid;overflow-wrap:anywhere">${escapeHtml(player.name)}</li>`).join('')}</ol>` : '<p style="font-size:12px">Még nincs játékos a keretben.</p>'}
+    </div>
   </div>`
 }
 
