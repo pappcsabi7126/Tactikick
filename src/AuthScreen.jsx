@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { signInWithGoogle, signInWithEmail, signUpWithEmail } from './dataService'
+import { sendPasswordResetEmail, signInWithGoogle, signInWithEmail, signUpWithEmail } from './dataService'
 
 function PasswordField({ id, label, value, onChange, placeholder, autoComplete, error }) {
   const [visible, setVisible] = useState(false)
@@ -106,6 +106,25 @@ export default function AuthScreen() {
     }
   }
 
+  async function resetPassword() {
+    const normalizedEmail = email.trim()
+    setError('')
+    setMessage('')
+    if (!normalizedEmail) {
+      setError('Előbb add meg az email-címedet.')
+      return
+    }
+    setLoading(true)
+    try {
+      await sendPasswordResetEmail(normalizedEmail)
+      setMessage('Elküldtük a jelszó-visszaállító linket. Nézd meg a postafiókodat.')
+    } catch (err) {
+      setError(err.message || 'A visszaállító email küldése nem sikerült.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="auth-screen">
       <div className="auth-card">
@@ -152,6 +171,12 @@ export default function AuthScreen() {
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             error={Boolean(error)}
           />
+
+          {mode === 'login' && (
+            <button className="auth-switch auth-forgot-password" type="button" onClick={resetPassword} disabled={loading}>
+              Elfelejtetted a jelszavad?
+            </button>
+          )}
 
           {mode === 'signup' && (
             <PasswordField

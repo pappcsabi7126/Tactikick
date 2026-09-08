@@ -1,0 +1,36 @@
+.training-reader { width: min(860px, calc(100vw - 28px)); max-height: 90dvh; margin: auto; padding: 0; border: 1px solid #dfe7e1; border-radius: 20px; background: #fff; color: #172d26; box-shadow: 0 28px 90px #0004; overflow-y: auto; }
+.training-reader::backdrop { background: #08120db3; backdrop-filter: blur(4px); }
+.dark-theme .training-reader { background: #111820; color: #f2f5f3; border-color: #344239; }
+.training-reader-header { display: flex; justify-content: space-between; gap: 20px; padding: 28px 28px 10px; }
+.training-reader h2 { margin: 10px 0; font-size: 26px; overflow-wrap: anywhere; }
+.training-reader p { opacity: .75; line-height: 1.7; }
+.training-reader-close { flex-shrink: 0; width: 40px; height: 40px; border: 1px solid #87958b40; background: transparent; color: inherit; border-radius: 10px; font-size: 26px; cursor: pointer; }
+.training-reader-toolbar { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 28px 24px; }
+.training-reader-toolbar button { min-height: 44px; }
+.training-reader-meta { display: flex; flex-wrap: wrap; gap: 24px; padding: 20px 28px; background: #85998b0d; border-block: 1px solid #87958b30; }
+.training-reader-meta div { display: grid; gap: 7px; }
+.training-reader-meta span { font-size: 12px; opacity: .65; }
+.training-reader-meta strong { font-size: 14px; }
+.training-reader-content { padding: 8px 28px 28px; }
+.training-reader-plan { list-style: none; padding: 0; margin: 0; }
+.training-reader-plan li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; padding: 24px 0; border-bottom: 1px solid #87958b30; }
+.training-reader-number { color: #21b864; font-weight: 700; font-size: 20px; }
+.training-reader-exercise-title { display: flex; justify-content: space-between; gap: 15px; }
+.training-reader-exercise-title h4 { margin: 0; font-size: 16px; }
+.training-reader-exercise-title span { white-space: nowrap; font-size: 12px; opacity: .65; }
+.training-reader-plan p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.training-reader-exercise-body { margin-top: 18px; }
+.training-reader-exercise-body.has-image { display: grid; grid-template-columns: minmax(140px, 32%) minmax(0, 1fr); gap: 24px; align-items: start; }
+.training-reader-exercise-body p { margin: 0; }
+.training-reader-exercise-body img { width: 100%; }
+.training-reader-attendance-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; min-height: 64px; padding: 12px 4px; border: 0; border-bottom: 1px solid #87958b30; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.training-reader-attendance-row:hover { background: #87958b10; }
+.training-reader-attendance-mark { display: grid; place-items: center; flex: 0 0 38px; height: 38px; border-radius: 50%; font-size: 25px; font-weight: 700; }
+.training-reader-attendance-mark.present { background: #20c46b20; color: #18b85d; }
+.training-reader-attendance-mark.absent { background: #ef444420; color: #ef4444; }
+@media(max-width:440px) { .training-reader-exercise-body.has-image { grid-template-columns: minmax(90px, 38%) minmax(0, 1fr); gap: 12px; } }
+.training-reader-plan img { display: block; max-width: 100%; max-height: 440px; object-fit: contain; border-radius: 12px; }
+.training-reader-attendance label { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid #87958b30; }
+.training-reader-attendance select { min-height: 44px; border: 1px solid #87958b60; border-radius: 8px; padding: 8px; background: inherit; color: inherit; }
+.dark-theme .training-reader-attendance select { background: #111820; }
+@media(max-width:600px) { .training-reader-header { padding: 20px 16px 8px; } .training-reader-toolbar { padding: 8px 16px 18px; } .training-reader-toolbar button { flex: 1 1 180px; } .training-reader-meta { padding: 16px; gap: 18px; } .training-reader-content { padding: 8px 16px 20px; } .training-reader h2 { font-size: 22px; } .training-reader-attendance label { flex-wrap: wrap; } }

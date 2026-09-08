@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { loadClubData, saveClubData } from './dataService'
+import ConfirmDialog from './ConfirmDialog'
 import './club-page.css'
 
 const DAYS = [
@@ -307,7 +309,7 @@ function buildTrainingEvents(trainings, teams) {
     })
 }
 
-export default function ClubPage({ teams = [], trainings = [], profile, onNavigate }) {
+export default function ClubPage({ teams = [], trainings = [], profile, userId, onNavigate }) {
   const storageKey = `tactikick-club-v2-${profile?.email || 'local'}`
   const [clubName, setClubName] = useState(() =>
     cleanClubName(readStorage(`${storageKey}-name`, profile?.club || 'TactiKick FC')),
@@ -345,6 +347,8 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
   const [editingPitch, setEditingPitch] = useState(null)
   const [copied, setCopied] = useState(false)
   const [toast, setToast] = useState(null)
+  const [cloudReady, setCloudReady] = useState(false)
+  const [confirmation, setConfirmation] = useState(null)
 
   function showToast(message, type = 'success') {
     setToast({ message, type })
@@ -352,6 +356,34 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
   }
 
   const isClubManager = isManagerRole(profile?.role) || isPrimaryManager(profile)
+
+  useEffect(() => {
+    let active = true
+    setCloudReady(false)
+    if (!userId) return () => { active = false }
+
+    loadClubData(userId)
+      .then((cloud) => {
+        if (!active) return
+        if (cloud) {
+          setClubName(cleanClubName(cloud.clubName || profile?.club || clubName))
+          setClubLogo(cloud.logo || '')
+          if (Array.isArray(cloud.pitches) && cloud.pitches.length) setPitches(cloud.pitches.map(normalizePitch))
+          setLocalEvents(cloud.events)
+          setMembers(cloud.members)
+          setInvites(Array.isArray(cloud.invites) ? cloud.invites : [])
+        }
+        setCloudReady(true)
+      })
+      .catch(() => {
+        if (!active) return
+        showToast('A klubadatok felhőből nem tölthetők be. A helyi példány továbbra is használható.', 'warning')
+      })
+
+    return () => { active = false }
+    // The initial local snapshot is intentionally migrated only once per account.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId])
 
   useEffect(() => {
     if (members) return
@@ -376,6 +408,8 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
         role: normalizeMemberRole(profile.role),
       }
     }))
+  // Profile edits are the trigger; including members would retrigger this normalization pass.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.email, profile?.name, profile?.role])
 
   const derivedEvents = useMemo(
@@ -467,6 +501,15 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     if (members) writeStorage(`${storageKey}-members`, members)
   }, [storageKey, members])
   useEffect(() => writeStorage(`${storageKey}-invites`, invites), [storageKey, invites])
+
+  useEffect(() => {
+    if (!userId || !cloudReady) return undefined
+    const timer = window.setTimeout(() => {
+      saveClubData(userId, { clubName, logo: clubLogo, pitches, events: localEvents, members, invites })
+        .catch(() => showToast('A klubadatok felhőmentése nem sikerült.', 'error'))
+    }, 500)
+    return () => window.clearTimeout(timer)
+  }, [userId, cloudReady, clubName, clubLogo, pitches, localEvents, members, invites])
 
   useEffect(() => {
     if (!isClubManager && ['event', 'pitches', 'people', 'settings'].includes(modal)) {
@@ -655,14 +698,16 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
       return
     }
 
-    if (!window.confirm(`Biztosan törlöd ezt az eseményt?\n\n${event.title} · ${event.start}–${event.end}`)) {
-      return
-    }
-
-    saveEvents(events.filter((item) => item.id !== eventId))
-    setModal(null)
-    setEditingEvent(null)
-    setDetailEvent(null)
+    setConfirmation({
+      title: 'Esemény törlése',
+      description: `${event.title} · ${event.start}–${event.end}`,
+      run: () => {
+        saveEvents(events.filter((item) => item.id !== eventId))
+        setModal(null)
+        setEditingEvent(null)
+        setDetailEvent(null)
+      },
+    })
   }
 
   function submitPitch(formEvent) {
@@ -709,10 +754,14 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
       return
     }
 
-    if (!window.confirm(`Törlöd a(z) „${pitch.name}” helyszínt?`)) return
-
-    setPitches((current) => current.filter((item) => item.id !== pitchId))
-    if (selectedPitch === pitchId) setSelectedPitch('all')
+    setConfirmation({
+      title: 'Pálya törlése',
+      description: `Biztosan törlöd ezt a helyszínt: ${pitch.name}?`,
+      run: () => {
+        setPitches((current) => current.filter((item) => item.id !== pitchId))
+        if (selectedPitch === pitchId) setSelectedPitch('all')
+      },
+    })
   }
 
   function invitePerson(formEvent) {
@@ -889,10 +938,38 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
     setModal(null)
   }
 
+  function exportClubData() {
+    const payload = {
+      format: 'tactikick-club-backup',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      club: {
+        name: cleanClubName(clubName),
+        logo: clubLogo,
+        pitches,
+        events,
+        members: members || [],
+        invites,
+      },
+      teams,
+      trainings,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `tactikick-${cleanClubName(clubName).toLowerCase().replace(/[^a-z0-9]+/gi, '-') || 'club'}-${dateKey(new Date())}.json`
+    link.click()
+    URL.revokeObjectURL(url)
+    showToast('A klub biztonsági mentése elkészült.')
+  }
+
   function resetLocalDemo() {
     if (!isClubManager) return
-    if (!window.confirm('A klub helyi prototípus adatait visszaállítod?')) return
+    setConfirmation({ title: 'Klubadatok visszaállítása', description: 'A helyi klubadatok és a felhőben tárolt példány is az alapállapotra kerül.', run: performReset })
+  }
 
+  function performReset() {
     localStorage.removeItem(`${storageKey}-events`)
     localStorage.removeItem(`${storageKey}-pitches`)
     localStorage.removeItem(`${storageKey}-members`)
@@ -1414,6 +1491,9 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
             </div>
 
             <div className="player-form-actions">
+              <button type="button" className="secondary-button" onClick={exportClubData}>
+                Adatok exportálása
+              </button>
               <button type="button" className="secondary-button" onClick={() => setModal(null)}>
                 Mégse
               </button>
@@ -1974,6 +2054,14 @@ export default function ClubPage({ teams = [], trainings = [], profile, onNaviga
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={Boolean(confirmation)}
+        title={confirmation?.title}
+        description={confirmation?.description}
+        confirmLabel="Megerősítés"
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => { confirmation?.run(); setConfirmation(null) }}
+      />
     </div>
   )
 }

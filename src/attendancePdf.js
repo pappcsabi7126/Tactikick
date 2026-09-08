@@ -17,8 +17,7 @@ function safeFileName(value) {
 }
 
 function statusSymbol(status) {
-  if (status === 'absent') return '×'
-  if (status === 'excused') return '◷'
+  if (status === 'absent' || status === 'excused') return '×'
   return '✓'
 }
 
@@ -52,7 +51,7 @@ export async function downloadAttendancePdf({
     .sort((a, b) => a.name.localeCompare(b.name, 'hu-HU', { sensitivity: 'base', numeric: true }))
     .map((player) => {
       const cells = trainingColumns.map((training) => {
-        const status = training.attendance?.[player.id] || 'present'
+        const status = training.attendance?.[player.id] === 'excused' ? 'absent' : training.attendance?.[player.id] || 'present'
         return `<td class="status status-${escapeHtml(status)}">${statusSymbol(status)}</td>`
       }).join('')
 
@@ -111,7 +110,7 @@ export async function downloadAttendancePdf({
       </style>
       <h1>Jelenléti ív</h1>
       <div class="meta">${escapeHtml(teamName)} · ${escapeHtml(monthName)}</div>
-      <div class="legend">✓ jelen · × hiányzik · ◷ igazolt</div>
+      <div class="legend">✓ jelen · × hiányzik</div>
       <table>
         <thead>
           <tr>

@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
-import TeamPage from './TeamPage'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import TrainingCreationChooser from './TrainingCreationChooser'
+import TrainingDetailsModal from './TrainingDetailsModal'
 import TrainingEditorModal from './TrainingEditorModal'
-import ClubPage from './ClubPage'
 import {
   createTranslator,
   getInitialLanguage,
@@ -13,6 +12,14 @@ import './App.css'
 import './attendance.css'
 import { downloadAttendancePdf } from './attendancePdf'
 import { cloudEnabled, getCurrentSession, loadCoachData, saveProfile, signOut, subscribeToAuth, syncCoachData, deleteCoachTeam, deleteCoachPlayer, deleteCoachTraining } from './dataService'
+
+const MatchPlanner = lazy(() => import('./MatchPlanner'))
+const TeamPage = lazy(() => import('./TeamPage'))
+const ClubPage = lazy(() => import('./ClubPage'))
+
+function PageLoading() {
+  return <div className="app-data-loading" role="status">Oldal betöltése…</div>
+}
 
 function readLegacyBusinessData() {
   try {
@@ -113,13 +120,12 @@ function getPlayerAttendanceStats(playerId, trainings, teamId) {
 
   let present = 0
   let absent = 0
-  let excused = 0
+  const excused = 0
 
   sessions.forEach((training) => {
     const status = training.attendance?.[playerId] || 'present'
     if (status === 'present') present += 1
-    else if (status === 'absent') absent += 1
-    else if (status === 'excused') excused += 1
+    else if (status === 'absent' || status === 'excused') absent += 1
   })
 
   const counted = present + absent
@@ -133,7 +139,7 @@ function getPlayerAttendanceStats(playerId, trainings, teamId) {
 }
 
 
-const validPages = new Set(['dashboard','teams','trainings','attendance','calendar','club','statistics','settings','profile'])
+const validPages = new Set(['dashboard','teams','trainings','matches','attendance','calendar','club','statistics','settings','profile'])
 function getRouteFromLocation() {
   const parts = window.location.pathname.split('/').filter(Boolean)
   if (parts[0] === 'team' && parts[1]) return { page: 'team', teamId: parts[1] }
@@ -142,6 +148,36 @@ function getRouteFromLocation() {
 }
 
 function App() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const sidebarRef = useRef(null)
+  const menuToggleRef = useRef(null)
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const menuToggle = menuToggleRef.current
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const focusable = () => [...sidebarRef.current.querySelectorAll('button, a[href]')].filter(item => item.getClientRects().length)
+    focusable()[0]?.focus()
+    function onKeyDown(event) {
+      if (event.key === 'Escape') setMobileMenuOpen(false)
+      if (event.key === 'Tab') {
+        const items = focusable()
+        const first = items[0], last = items[items.length - 1]
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }
+    }
+    const media = window.matchMedia('(max-width: 700px)')
+    const onResize = () => { if (!media.matches) setMobileMenuOpen(false) }
+    document.addEventListener('keydown', onKeyDown)
+    media.addEventListener('change', onResize)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+      media.removeEventListener('change', onResize)
+      menuToggle?.focus()
+    }
+  }, [mobileMenuOpen])
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(cloudEnabled)
   const [cloudReady, setCloudReady] = useState(!cloudEnabled)
@@ -168,6 +204,7 @@ function App() {
 
   useEffect(() => {
     function handlePopState() {
+      setMobileMenuOpen(false)
       const route = getRouteFromLocation()
       setActivePage(route.page)
       setOpenTrainingChooserOnTeam(false)
@@ -187,6 +224,7 @@ function App() {
   const [teamToDelete, setTeamToDelete] = useState(null)
   const [teamToEdit, setTeamToEdit] = useState(null)
   const [globalEditingTraining, setGlobalEditingTraining] = useState(null)
+  const [matchEditTarget, setMatchEditTarget] = useState(null)
   const [globalTrainingDraft, setGlobalTrainingDraft] = useState(null)
   const [globalTrainingToDelete, setGlobalTrainingToDelete] = useState(null)
 
@@ -212,7 +250,7 @@ function App() {
       setAuthLoading(false)
       if (!nextSession) setCloudReady(false)
     })
-  }, [])
+  }, [t])
 
   const [theme, setTheme] = useState(() => {
     try {
@@ -326,7 +364,7 @@ function App() {
       })
 
     return () => { active = false }
-  }, [session?.user?.id])
+  }, [session?.user?.id, session?.user?.email, t])
 
   // Keep a redundant browser backup as a safety net. Supabase remains the
   // primary source, but a transient cloud issue must never make the UI look
@@ -354,7 +392,7 @@ function App() {
       })
     }, 350)
     return () => window.clearTimeout(timer)
-  }, [cloudReady, session?.user?.id, teams, players, trainings])
+  }, [cloudReady, session?.user?.id, teams, players, trainings, t])
 
   useEffect(() => {
     if (!cloudEnabled || !session?.user?.id || !cloudReady) return
@@ -362,7 +400,7 @@ function App() {
       console.error(error)
       setCloudError(error.message || t('profileSaveError'))
     })
-  }, [cloudReady, session?.user?.id, profile])
+  }, [cloudReady, session?.user?.id, profile, t])
 
   async function handleSignOut() {
     if (!cloudEnabled) return
@@ -371,6 +409,11 @@ function App() {
 
   function openGlobalTrainingEdit(training) {
     if (!training) return
+    if (training.calendarType === 'match') {
+      setMatchEditTarget(training.id)
+      navigate('matches')
+      return
+    }
     setGlobalEditingTraining(training)
     setGlobalTrainingDraft({
       date: training.date || '',
@@ -478,6 +521,7 @@ function App() {
   ) : null
 
   function navigate(page) {
+    setMobileMenuOpen(false)
     setActivePage(page)
     setOpenTrainingChooserOnTeam(false)
     setOpenTrainingModeOnTeam(null)
@@ -691,6 +735,7 @@ function App() {
     dashboard: t('home'),
     teams: t('teams'),
     trainings: t('trainings'),
+    matches: 'Meccstervező',
     attendance: t('attendance'),
     calendar: t('calendar'),
     club: t('club'),
@@ -704,6 +749,7 @@ function App() {
     { id: 'dashboard', icon: '⌂', label: t('home') },
     { id: 'teams', icon: '♙', label: t('teams') },
     { id: 'trainings', icon: '◉', label: t('trainings') },
+    { id: 'matches', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m12 8 4 3-1.5 4h-5L8 11Z M12 8V3 M16 11l4.5-2 M14.5 15l3 4.5 M9.5 15l-3 4.5 M8 11 3.5 9" /></svg>, label: 'Meccstervező' },
     { id: 'attendance', icon: '✓', label: t('attendance') },
     { id: 'club', icon: '♜', label: t('club') },
   ]
@@ -711,7 +757,9 @@ function App() {
   return (
     <div className={`app ${theme}-theme`}>
       {recoveryBanner}
-      <aside className="sidebar">
+      {mobileMenuOpen && <div className="mobile-menu-backdrop" onClick={() => setMobileMenuOpen(false)} aria-hidden="true" />}
+      <aside ref={sidebarRef} id="app-navigation" className={`sidebar ${mobileMenuOpen ? 'mobile-menu-open' : ''}`} role={mobileMenuOpen ? 'dialog' : undefined} aria-modal={mobileMenuOpen || undefined} aria-label="Navigáció">
+        <button type="button" className="mobile-menu-close" aria-label="Menü bezárása" onClick={() => setMobileMenuOpen(false)}>×</button>
         <div className="brand">
           <div className="brand-logo"><span>✦</span></div>
           <div>
@@ -809,31 +857,11 @@ function App() {
         </div>
       </aside>
 
-      <nav className="mobile-bottom-nav" aria-label="Mobil navigáció">
-        {[
-          ['dashboard', t('home')],
-          ['club', t('club')],
-          ['teams', t('teams')],
-          ['trainings', t('trainings')],
-          ['attendance', t('attendance')],
-          ['calendar', t('calendar')],
-        ].map(([id, label]) => (
-          <button key={id} type="button" className={activePage === id ? 'active' : ''} onClick={() => navigate(id)} aria-current={activePage === id ? 'page' : undefined}>
-            <span className="mobile-nav-icon" aria-hidden="true">
-              {id === 'dashboard' && <svg viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8v9.2a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>}
-              {id === 'club' && <svg viewBox="0 0 24 24"><path d="M6 20h12M8 20V7h8v13M10 7V4h4v3M5 10h3M16 10h3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 13h4M10 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
-              {id === 'teams' && <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="17" cy="9" r="2.3" fill="none" stroke="currentColor" strokeWidth="1.6"/><path d="M3.5 20c.5-4 2.7-6 5.5-6s5 2 5.5 6M14 15c2.8-.1 4.8 1.4 5.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>}
-              {id === 'trainings' && <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>}
-              {id === 'attendance' && <svg viewBox="0 0 24 24"><path d="M5 4.5h14v15H5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8 8h8M8 12h8M8 16h4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><path d="m16 15 1.3 1.3L20 13.6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-              {id === 'calendar' && <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" strokeWidth="1.8"/><path d="M7 3v4M17 3v4M3 10h18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M8 14h2M14 14h2M8 17h2M14 17h2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>}
-            </span>
-            <small>{label}</small>
-          </button>
-        ))}
-      </nav>
-
-      <main className="main">
+      <main className="main" inert={mobileMenuOpen || undefined}>
         <header className="topbar">
+          <button ref={menuToggleRef} type="button" className="mobile-menu-toggle" aria-label="Menü megnyitása" aria-expanded={mobileMenuOpen} aria-controls="app-navigation" onClick={() => setMobileMenuOpen(true)}>
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
           <div className="breadcrumb">
             <span>TactiKick</span>
             <span>/</span>
@@ -926,7 +954,7 @@ function App() {
         )}
 
         {activePage === 'team' && selectedTeam && (
-          <TeamPage
+          <Suspense fallback={<PageLoading />}><TeamPage
             t={t}
             team={selectedTeam}
             players={playersWithStats.filter((player) => player.teamId === selectedTeam.id)}
@@ -936,11 +964,12 @@ function App() {
             trainings={trainings}
             setTrainings={setTrainings}
             onBack={closeTeam}
+            onEditTeam={requestEditTeam}
             openTrainingChooser={openTrainingChooserOnTeam}
             openTrainingMode={openTrainingModeOnTeam}
             openAttendanceTrainingId={openAttendanceTrainingId}
             language={language}
-          />
+          /></Suspense>
         )}
 
         {activePage === 'trainings' && showTrainingCreationChooser && (
@@ -957,7 +986,8 @@ function App() {
             t={t}
             trainings={trainings}
             teams={teamsWithStats}
-            onOpenTeam={openTeam}
+            players={players}
+            setTrainings={setTrainings}
             onNavigate={navigate}
             onEditTraining={openGlobalTrainingEdit}
             onDeleteTraining={requestGlobalTrainingDelete}
@@ -975,14 +1005,21 @@ function App() {
           />
         )}
 
+        {activePage === 'matches' && (
+          <Suspense fallback={<PageLoading />}>
+            <MatchPlanner initialMatchId={matchEditTarget || ''} initialEdit={matchEditTarget !== null} teams={teams} players={players} trainings={trainings} setTrainings={setTrainings} />
+          </Suspense>
+        )}
+
         {activePage === 'club' && (
-          <ClubPage
+          <Suspense fallback={<PageLoading />}><ClubPage
             teams={teamsWithStats}
             trainings={trainings}
             profile={profile}
+            userId={session?.user?.id}
             onNavigate={navigate}
             onOpenTeam={openTeam}
-          />
+          /></Suspense>
         )}
 
         {activePage === 'attendance' && (
@@ -1642,6 +1679,9 @@ function TeamCard({ t, team, onOpen, onEdit, onDelete }) {
         <button className="team-button" onClick={() => onOpen(team)}>
           {t('teamOpen')} <span>→</span>
         </button>
+        {onEdit && <button type="button" className="team-button" onClick={() => onEdit(team)}>
+          {t('editTeam')} <span aria-hidden="true">✎</span>
+        </button>}
       </div>
     </div>
   )
@@ -1889,8 +1929,9 @@ function StatisticsPage({ t, teams, players, trainings }) {
    TRAININGS / ATTENDANCE
 ===================================================== */
 
-function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewTraining, onEditTraining, onDeleteTraining }) {
-  const [selectedTraining, setSelectedTraining] = useState(null)
+function TrainingsPage({ t, trainings, teams, players, setTrainings, onNavigate, onOpenNewTraining, onEditTraining, onDeleteTraining }) {
+  const [selectedTrainingId, setSelectedTrainingId] = useState(null)
+  const selectedTraining = trainings.find((training) => training.id === selectedTrainingId)
   const [teamFilter, setTeamFilter] = useState(() => {
     try {
       const saved = localStorage.getItem('tactikick-training-team-filter') || 'all'
@@ -1956,7 +1997,7 @@ function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewT
 
             return (
               <div className="training-overview-card training-overview-card-actionable" key={training.id}>
-                <button className="training-overview-main" type="button" onClick={() => setSelectedTraining(training)}>
+                <button className="training-overview-main" type="button" onClick={() => setSelectedTrainingId(training.id)}>
                   <div className="training-overview-date">
                     <span>{training.date.slice(5, 7)}.</span>
                     <strong>{training.date.slice(8, 10)}</strong>
@@ -1979,40 +2020,14 @@ function TrainingsPage({ t, trainings, teams, onOpenTeam, onNavigate, onOpenNewT
       )}
 
       {selectedTraining && (
-        <div className="training-choice-backdrop" onClick={() => setSelectedTraining(null)}>
-          <div className="training-choice-modal" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="training-choice-close" onClick={() => setSelectedTraining(null)}>×</button>
-            <div className="eyebrow">EDZÉS</div>
-            <h2>{selectedTraining.title || 'Edzés'}</h2>
-            <p>
-              {selectedTraining.date} · {selectedTraining.startTime}–{selectedTraining.endTime}
-            </p>
-            <div className="training-choice-actions">
-              <button
-                type="button"
-                className="neon-button"
-                onClick={() => {
-                  const team = teams.find((item) => item.id === selectedTraining.teamId)
-                  setSelectedTraining(null)
-                  if (team) onOpenTeam(team)
-                }}
-              >
-                ⚽ Edzés megnyitása
-              </button>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => {
-                  const team = teams.find((item) => item.id === selectedTraining.teamId)
-                  setSelectedTraining(null)
-                  if (team) onOpenTeam(team, { openAttendanceTrainingId: selectedTraining.id })
-                }}
-              >
-                ✓ Jelenléti ív
-              </button>
-            </div>
-          </div>
-        </div>
+        <TrainingDetailsModal
+          training={selectedTraining}
+          team={teams.find((team) => team.id === selectedTraining.teamId)}
+          players={players.filter((player) => player.teamId === selectedTraining.teamId)}
+          onClose={() => setSelectedTrainingId(null)}
+          onEdit={(training) => { setSelectedTrainingId(null); onEditTraining(training) }}
+          onAttendanceChange={(trainingId, playerId, status) => setTrainings((current) => current.map((training) => training.id === trainingId ? { ...training, attendance: { ...training.attendance, [playerId]: status } } : training))}
+        />
       )}
     </div>
   )
@@ -2072,7 +2087,7 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
   }
 
   function getStatus(training, playerId) {
-    return training.attendance?.[playerId] || 'present'
+    return training.attendance?.[playerId] === 'excused' ? 'absent' : training.attendance?.[playerId] || 'present'
   }
 
   function statusLabel(status) {
@@ -2209,11 +2224,6 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
           <div className="attendance-summary-card">
             <span>{t('absent')}</span>
             <strong>{totals.absent}</strong>
-          </div>
-
-          <div className="attendance-summary-card">
-            <span>{t('excused')}</span>
-            <strong>{totals.excused}</strong>
           </div>
 
           <div className="attendance-summary-card highlight">

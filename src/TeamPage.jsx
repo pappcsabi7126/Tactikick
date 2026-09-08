@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import TrainingEditorModal from './TrainingEditorModal'
 import TrainingCreationChooser from './TrainingCreationChooser'
+import ConfirmDialog from './ConfirmDialog'
 
 import {
   createDefaultTrainingPlan,
@@ -33,6 +34,7 @@ export default function TeamPage({
   trainings: sharedTrainings,
   setTrainings: setSharedTrainings,
   onBack,
+  onEditTeam,
   openTrainingChooser = false,
   openTrainingMode = null,
   openAttendanceTrainingId = null,
@@ -40,6 +42,7 @@ export default function TeamPage({
 }) {
   const [activeTab, setActiveTab] = useState('players')
   const [selectedPlayer, setSelectedPlayer] = useState(null)
+  const [confirmation, setConfirmation] = useState(null)
 
   const [showAddPlayer, setShowAddPlayer] = useState(false)
   const [editingPlayer, setEditingPlayer] = useState(null)
@@ -65,6 +68,8 @@ export default function TeamPage({
     }
 
     setShowNewTrainingChoice(true)
+  // These props are one-shot navigation signals; the opener itself is intentionally excluded.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openTrainingChooser, openTrainingMode])
 
   const [showTrainingLibrary, setShowTrainingLibrary] = useState(false)
@@ -397,8 +402,10 @@ export default function TeamPage({
   }
 
   function handleDeletePlayer(player) {
-    if (!window.confirm(`${player.name} ${t('deletePlayerConfirm')}`)) return
+    setConfirmation({ title: 'Játékos törlése', description: `${player.name} ${t('deletePlayerConfirm')}`, run: () => performDeletePlayer(player) })
+  }
 
+  function performDeletePlayer(player) {
     if (onDeletePlayer) {
       onDeletePlayer(player.id)
     } else {
@@ -782,10 +789,14 @@ export default function TeamPage({
   async function handleDeleteTemplate(template) {
     if (!template) return
 
-    const confirmed = window.confirm(
-      `${t('deleteTemplateConfirm')} "${template.name}"?`,
-    )
-    if (!confirmed) return
+    setConfirmation({
+      title: 'Edzésterv törlése',
+      description: `${t('deleteTemplateConfirm')} "${template.name}"?`,
+      run: () => performDeleteTemplate(template),
+    })
+  }
+
+  async function performDeleteTemplate(template) {
 
     try {
       const session = await getCurrentSession()
@@ -932,7 +943,7 @@ export default function TeamPage({
       (player) => training?.attendance?.[player.id] === 'present',
     ).length
     const absent = players.filter(
-      (player) => training?.attendance?.[player.id] === 'absent',
+      (player) => ['absent', 'excused'].includes(training?.attendance?.[player.id]),
     ).length
     const excused = players.filter(
       (player) => training?.attendance?.[player.id] === 'excused',
@@ -954,13 +965,12 @@ export default function TeamPage({
 
     let present = 0
     let absent = 0
-    let excused = 0
+    const excused = 0
 
     relevantTrainings.forEach((training) => {
       const status = training.attendance?.[playerId] || 'present'
       if (status === 'present') present += 1
-      else if (status === 'absent') absent += 1
-      else if (status === 'excused') excused += 1
+      else if (status === 'absent' || status === 'excused') absent += 1
     })
 
     const counted = present + absent
@@ -1000,9 +1010,7 @@ export default function TeamPage({
       const nextStatus =
         currentStatus === 'present'
           ? 'absent'
-          : currentStatus === 'absent'
-            ? 'excused'
-            : 'present'
+          : 'present'
 
       return {
         ...training,
@@ -1083,6 +1091,7 @@ export default function TeamPage({
         </div>
 
         <div className="team-header-actions">
+          {onEditTeam && <button type="button" className="secondary-button" onClick={() => onEditTeam(team)}>✎ {t('editTeam')}</button>}
           <button
             className="neon-button"
             onClick={openNewTrainingChoice}
@@ -1518,9 +1527,7 @@ export default function TeamPage({
                       aria-label={
                         status === 'present'
                           ? t('present')
-                          : status === 'absent'
-                            ? t('absent')
-                            : t('excused')
+                          : t('absent')
                       }
                     >
                       {status === 'present'
@@ -1609,11 +1616,6 @@ export default function TeamPage({
                     <div className="training-detail-stat">
                       <span>{t('absent').toUpperCase()}</span>
                       <strong>{stats.absent}</strong>
-                    </div>
-
-                    <div className="training-detail-stat">
-                      <span>{t('excused').toUpperCase()}</span>
-                      <strong>{stats.excused}</strong>
                     </div>
 
                     <div className="training-detail-stat">
@@ -2746,6 +2748,14 @@ export default function TeamPage({
 
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(confirmation)}
+        title={confirmation?.title}
+        description={confirmation?.description}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => { confirmation?.run(); setConfirmation(null) }}
+      />
 
     </div>
   )
