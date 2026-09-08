@@ -44,12 +44,17 @@ test('formation changes and squad removal clear unusable assignments', () => {
   assert.deepEqual(removePlayerFromHalf(half, '1').replacements, { KV: '4' })
 })
 
+<<<<<<< HEAD
 test('PDF contains only the opening lineup, replacements and one bench with minimal match information', () => {
+=======
+test('PDF includes both half formations, substitutions, quarter benches and escaped names', () => {
+>>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
   const plan = { ...readMatchPlan({}), squad: [{ id: '1', name: '<Ákos & Bence>' }, { id: '2', name: 'Csere' }] }
   const halves = getHalves(plan)
   halves[0].starters.K = '1'
   halves[0].replacements.K = '2'
   halves[1].formation = '4–3–1'
+<<<<<<< HEAD
   const html = matchPdfHtml({ match: { title: '<Meccs>', date: '2026-09-07', startTime: '14:00' }, teamName: 'Klub', teamAge: 'U12', plan, halves })
   assert.ok(html.includes('&lt;Ákos &amp; Bence&gt;'))
   assert.ok(html.includes('U12 · 2026-09-07'))
@@ -63,5 +68,13 @@ test('PDF contains only the opening lineup, replacements and one bench with mini
   const bench = html.split('Cserék</h2>')[1]
   assert.ok(bench.includes('Csere'))
   assert.ok(!bench.includes('&lt;Ákos'))
+=======
+  const html = matchPdfHtml({ match: { title: '<Meccs>', date: '2026-09-07' }, teamName: 'U12', plan, halves })
+  assert.ok(html.includes('&lt;Ákos &amp; Bence&gt;'))
+  assert.ok(html.includes('1. félidő · 3–2–3'))
+  assert.ok(html.includes('2. félidő · 4–3–1'))
+  assert.ok(html.includes('↳ Csere'))
+  assert.ok(html.includes('4. negyed – kispad'))
+>>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
   assert.ok(!html.includes('<Meccs>'))
 })

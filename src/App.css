@@ -390,7 +390,11 @@
 }
 
 
-.auth-google { position: relative; }
+.auth-google { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 54px; padding: 14px 20px; border: 1px solid #d6ded9; border-radius: 12px; background: #fff; color: #17211b; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+.auth-google:hover:not(:disabled) { box-shadow: 0 3px 12px #17211b12; border-color: #9aaba0; }
+.auth-google:focus-visible { outline: 3px solid #238b57; outline-offset: 3px; }
+.auth-google:disabled { opacity: .6; cursor: wait; }
+.auth-google-icon { width: 22px; height: 22px; flex: 0 0 22px; }
 .auth-google .google-mark {
   width: 20px;
   height: 20px;

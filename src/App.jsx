@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+=======
+import { useEffect, useMemo, useState } from 'react'
+import TeamPage from './TeamPage'
+import MatchPlanner from './MatchPlanner'
+>>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
 import TrainingCreationChooser from './TrainingCreationChooser'
 import TrainingDetailsModal from './TrainingDetailsModal'
 import TrainingEditorModal from './TrainingEditorModal'
@@ -195,6 +201,7 @@ function App() {
 
   const initialRoute = getRouteFromLocation()
   const [activePage, setActivePage] = useState(initialRoute.page)
+  const [plannerMatchId, setPlannerMatchId] = useState('')
   const [selectedTeam, setSelectedTeam] = useState(() => initialRoute.teamId ? { id: initialRoute.teamId } : null)
   const [openTrainingChooserOnTeam, setOpenTrainingChooserOnTeam] = useState(false)
   const [openTrainingModeOnTeam, setOpenTrainingModeOnTeam] = useState(null)
@@ -771,6 +778,9 @@ function App() {
         <div className="menu-title">{t('workspace')}</div>
 
         <nav className="navigation">
+          <button className={`nav-item ${activePage === 'matches' ? 'active' : ''}`} onClick={() => navigate('matches')}>
+            <span className="nav-icon">⚽</span><span className="nav-label">Meccstervező</span>
+          </button>
           {navigation.map((item) => (
             <button
               key={item.id}
@@ -1005,11 +1015,15 @@ function App() {
           />
         )}
 
+<<<<<<< HEAD
         {activePage === 'matches' && (
           <Suspense fallback={<PageLoading />}>
             <MatchPlanner initialMatchId={matchEditTarget || ''} initialEdit={matchEditTarget !== null} teams={teams} players={players} trainings={trainings} setTrainings={setTrainings} />
           </Suspense>
         )}
+=======
+        {activePage === 'matches' && <MatchPlanner initialMatchId={plannerMatchId} teams={teams} players={players} trainings={trainings} setTrainings={setTrainings} />}
+>>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
 
         {activePage === 'club' && (
           <Suspense fallback={<PageLoading />}><ClubPage
@@ -1028,6 +1042,7 @@ function App() {
 
         {activePage === 'calendar' && (
           <CalendarPage
+            onOpenMatch={(match) => { setPlannerMatchId(String(match.id)); navigate('matches') }}
             t={t}
             trainings={trainings}
             setTrainings={setTrainings}
@@ -1691,7 +1706,7 @@ function TeamCard({ t, team, onOpen, onEdit, onDelete }) {
    CALENDAR
 ===================================================== */
 
-function CalendarPage({ t, trainings, setTrainings, teams, onOpenTeam, language = 'hu' }) {
+function CalendarPage({ t, trainings, setTrainings, teams, onOpenTeam, onOpenMatch, language = 'hu' }) {
   const today = new Date()
   const todayKey = today.toISOString().slice(0, 10)
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
@@ -1784,7 +1799,7 @@ function CalendarPage({ t, trainings, setTrainings, teams, onOpenTeam, language 
           {selectedDate && selectedEvents.length === 0 && <div><p className="calendar-empty">{t('noEventsDay')}</p><button className="secondary-button" onClick={() => openEventForm()}>+ {t('eventForDay')}</button></div>}
           {selectedEvents.map((event) => {
             const team = teams.find((item) => item.id === event.teamId)
-            return <button className="calendar-event-detail" key={event.id} onClick={() => team && onOpenTeam(team)}>
+            return <button className="calendar-event-detail" key={event.id} onClick={() => event.calendarType === 'match' ? onOpenMatch(event) : team && onOpenTeam(team)}>
               <div className={`calendar-event-dot ${event.color || 'purple'}`} /><div><strong>{event.title}</strong><span>{team?.name || t('team')} · {event.startTime}–{event.endTime}</span></div><span>→</span>
             </button>
           })}
