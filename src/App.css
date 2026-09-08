@@ -750,3 +750,21 @@
   background: #fff;
   color: #536057;
 }
+.page-skeleton {
+  display: grid;
+  gap: 16px;
+  width: min(900px, calc(100% - 40px));
+  margin: 48px auto;
+  padding: 24px;
+}
+.page-skeleton i {
+  display: block;
+  height: 110px;
+  border-radius: 16px;
+  background: #e8eaf0;
+  animation: skeleton-pulse 1.4s ease-in-out infinite alternate;
+}
+.page-skeleton i:first-child { width: 45%; height: 28px; }
+html[data-coachapp-theme="dark"] .page-skeleton i { background: #171c28; }
+@keyframes skeleton-pulse { to { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .page-skeleton i { animation: none; } }

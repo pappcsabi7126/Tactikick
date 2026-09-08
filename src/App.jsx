@@ -13,12 +13,13 @@ import './attendance.css'
 import { downloadAttendancePdf } from './attendancePdf'
 import { cloudEnabled, getCurrentSession, loadCoachData, saveProfile, signOut, subscribeToAuth, syncCoachData, deleteCoachTeam, deleteCoachPlayer, deleteCoachTraining } from './dataService'
 
-const MatchPlanner = lazy(() => import('./MatchPlanner'))
-const TeamPage = lazy(() => import('./TeamPage'))
-const ClubPage = lazy(() => import('./ClubPage'))
+const pageImports = [() => import('./MatchPlanner'), () => import('./TeamPage'), () => import('./ClubPage')]
+const MatchPlanner = lazy(pageImports[0])
+const TeamPage = lazy(pageImports[1])
+const ClubPage = lazy(pageImports[2])
 
 function PageLoading() {
-  return <div className="app-data-loading" role="status">Oldal betöltése…</div>
+  return <div className="page-skeleton" role="status" aria-label="Betöltés"><i /><i /><i /></div>
 }
 
 function readLegacyBusinessData() {
@@ -148,6 +149,10 @@ function getRouteFromLocation() {
 }
 
 function App() {
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void Promise.allSettled(pageImports.map(load => load())) }, 800)
+    return () => window.clearTimeout(timer)
+  }, [])
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const sidebarRef = useRef(null)
   const menuToggleRef = useRef(null)
@@ -245,11 +250,13 @@ function App() {
         setAuthLoading(false)
       })
 
-    return subscribeToAuth((nextSession) => {
+    const unsubscribe = subscribeToAuth((nextSession) => {
+      if (!active) return
       setSession(nextSession)
       setAuthLoading(false)
       if (!nextSession) setCloudReady(false)
     })
+    return () => { active = false; unsubscribe() }
   }, [t])
 
   const [theme, setTheme] = useState(() => {
@@ -479,13 +486,7 @@ function App() {
 
   if (cloudEnabled && session?.user?.id && dataLoading) {
     return (
-      <div className="app-data-loading">
-        <div className="data-loading-card">
-          <div className="data-loading-spinner" aria-hidden="true" />
-          <strong>Adatok betöltése…</strong>
-          <span>Megvárjuk a Supabase válaszát, hogy egy pillanatra se jelenjen meg üres csapat- vagy játékoslista.</span>
-        </div>
-      </div>
+      <PageLoading />
     )
   }
 

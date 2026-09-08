@@ -395,6 +395,8 @@
 }
 
 .training-plan-image {
+  width: fit-content;
+  max-width: 100%;
   margin-top: 9px;
   overflow: hidden;
   border: 1px solid #2a303a;
@@ -404,10 +406,14 @@
 
 .training-plan-image img {
   display: block;
-  width: 100%;
-  max-height: 180px;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 360px;
   object-fit: contain;
 }
+
+.dark-theme .training-plan-image img { filter: brightness(.82); }
 
 .training-plan-add {
   width: calc(100% - 42px);

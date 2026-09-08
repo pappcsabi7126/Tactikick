@@ -66,7 +66,17 @@ export async function signOut() {
   if (error) throw error
 }
 
-export async function loadCoachData(userId) {
+const pendingCoachLoads = new Map()
+
+export function loadCoachData(userId) {
+  if (!pendingCoachLoads.has(userId)) {
+    const request = fetchCoachData(userId).finally(() => pendingCoachLoads.delete(userId))
+    pendingCoachLoads.set(userId, request)
+  }
+  return pendingCoachLoads.get(userId)
+}
+
+async function fetchCoachData(userId) {
   if (!supabase || !userId) return null
 
   const [profileResult, teamsResult, playersResult, trainingsResult] = await Promise.all([

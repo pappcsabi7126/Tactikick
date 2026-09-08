@@ -2145,3 +2145,25 @@
     min-width: 1340px;
   }
 }
+.dark-theme .club-event-details-modal {
+  --surface: #151922;
+  --surface-1: #151922;
+  --border: #2b3240;
+  --text: #c9d0dd;
+  --text-strong: #edf0f6;
+  --text-muted: #9aa5b6;
+  --muted: #9aa5b6;
+  color-scheme: dark;
+}
+.dark-theme .club-event-details-modal .club-pitch-visual {
+  background: #172f28;
+  border-color: #385347;
+  box-shadow: none;
+}
+.dark-theme .club-event-details-modal .club-pitch-zone {
+  background: rgba(139, 92, 246, .25);
+  border-color: rgba(167, 139, 250, .5);
+}
+.dark-theme .club-event-details-modal .club-pitch-visual-card {
+  border-color: var(--border);
+}
