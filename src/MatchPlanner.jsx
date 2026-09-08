@@ -3,7 +3,6 @@ import { readMatchPlan, getHalves, removePlayerFromHalf } from './matchPlan'
 import MatchHalves from './MatchHalves'
 import './match-planner.css'
 
-<<<<<<< HEAD
 export default function MatchPlanner({ teams, players, trainings, setTrainings, initialMatchId = '', initialEdit = false }) {
   const matches = trainings.filter((item) => item.calendarType === 'match').sort((a, b) => b.date.localeCompare(a.date))
   const [selectedId, setSelectedId] = useState(initialMatchId)
@@ -22,12 +21,6 @@ export default function MatchPlanner({ teams, players, trainings, setTrainings, 
     setSelectedId(String(editingId))
     setEditingId(null)
   }
-=======
-export default function MatchPlanner({ teams, players, trainings, setTrainings, initialMatchId = '' }) {
-  const matches = trainings.filter((item) => item.calendarType === 'match').sort((a, b) => b.date.localeCompare(a.date))
-  const [selectedId, setSelectedId] = useState(initialMatchId)
-  const selected = matches.find((match) => String(match.id) === selectedId)
->>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
   function createMatch(event) {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
@@ -37,25 +30,17 @@ export default function MatchPlanner({ teams, players, trainings, setTrainings, 
     setTrainings((current) => [...current, match])
     setSelectedId(String(match.id))
     event.currentTarget.reset()
-<<<<<<< HEAD
     setShowCreate(false)
   }
   return <div className="page match-planner">
     <div className="hero-header"><div><div className="eyebrow">TACTIKICK · MÉRKŐZÉSEK</div><h1>Meccstervező</h1><p>A kerettől a kezdő sípszóig.</p></div><button type="button" className="neon-button" aria-expanded={showCreate || !matches.length} onClick={() => setShowCreate(!showCreate)}>+ Új mérkőzés</button></div>
     {(showCreate || !matches.length) && <section className="mp-card"><div className="mp-section-heading"><h2>Új mérkőzés</h2>{matches.length > 0 && <button type="button" onClick={() => setShowCreate(false)}>Mégse</button>}</div>
-=======
-  }
-  return <div className="page match-planner">
-    <div className="hero-header"><div><div className="eyebrow">MÉRKŐZÉS</div><h1>Meccstervező</h1><p>Kezdőcsapat, kispad és cserék — minden korosztályból.</p></div></div>
-    <section className="mp-card"><h2>Új mérkőzés</h2>
->>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
       {!teams.length ? <p>Először hozz létre egy csapatot a Csapatok menüben.</p> : <form className="mp-grid" onSubmit={createMatch}>
         <label>Csapat<select name="team">{teams.map((team) => <option key={team.id} value={team.id}>{team.name} {team.age}</option>)}</select></label>
         <label>Mérkőzés / ellenfél<input name="title" required placeholder="Pl. U13 – Diósd" /></label>
         <label>Dátum<input name="date" type="date" required /></label><label>Kezdés<input name="time" type="time" required defaultValue="10:00" /></label>
         <button className="neon-button" type="submit">Meccs létrehozása</button>
       </form>}
-<<<<<<< HEAD
     </section>}
     {!matches.length && <div className="mp-empty"><span aria-hidden="true">◎</span><h2>Innen indul a meccsterved</h2><p>Hozz létre egy mérkőzést, válaszd ki a keretet, majd állítsd össze a két félidőt.</p></div>}
     {matches.length > 0 && <div className="mp-workspace">
@@ -70,11 +55,6 @@ export default function MatchPlanner({ teams, players, trainings, setTrainings, 
       </form></section>}
       <MatchEditor key={selected.id} match={selected} teams={teams} players={players} matches={matches} onSave={(plan) => setTrainings((current) => current.map((item) => item.id === selected.id ? { ...item, plan: [...(item.plan || []).filter((entry) => entry.kind !== 'match-lineup'), plan] } : item))} /></>}</div>
     </div>}
-=======
-    </section>
-    <section className="mp-card"><label>Mérkőzés kiválasztása<select value={selectedId} onChange={(event) => setSelectedId(event.target.value)}><option value="">Válassz mérkőzést…</option>{matches.map((match) => <option key={match.id} value={match.id}>{match.date} · {match.title} · {teams.find((team) => team.id === match.teamId)?.name}</option>)}</select></label>{!matches.length && <p>Még nincs mérkőzés. A naptárban felvett meccsek is itt jelennek meg.</p>}</section>
-    {selected && <MatchEditor key={selected.id} match={selected} teams={teams} players={players} matches={matches} onSave={(plan) => setTrainings((current) => current.map((item) => item.id === selected.id ? { ...item, plan: [...(item.plan || []).filter((entry) => entry.kind !== 'match-lineup'), plan] } : item))} />}
->>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
   </div>
 }
 
@@ -82,10 +62,7 @@ function MatchEditor({ match, teams, players, matches, onSave }) {
   const plan = readMatchPlan(match)
   const [source, setSource] = useState('all')
   const [query, setQuery] = useState('')
-<<<<<<< HEAD
   const [stage, setStage] = useState('squad')
-=======
->>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
   const halves = getHalves(plan)
   const guests = matches.flatMap((item) => readMatchPlan(item).squad).filter((player) => player.guest)
   const available = [...new Map([...guests, ...players].map((player) => [String(player.id), player])).values()]
@@ -106,7 +83,6 @@ function MatchEditor({ match, teams, players, matches, onSave }) {
     event.currentTarget.reset()
   }
   return <>
-<<<<<<< HEAD
     <div className="mp-stage-nav" role="group" aria-label="Meccsterv nézete">{[['squad', '01', 'Meccskeret'], ['lineup', '02', 'Felállás és cserék'], ['summary', '03', 'Összegzés']].map(([id, number, label]) => <button type="button" key={id} aria-pressed={stage === id} className={stage === id ? 'is-selected' : ''} onClick={() => setStage(id)}><span>{number}</span>{label}</button>)}</div>
     {stage === 'squad' && <section className="mp-card"><div className="mp-section-heading"><div><h2>Állítsd össze a keretet</h2><p>Válassz játékosokat a csapataidból, vagy adj hozzá vendéget.</p></div><span className="mp-count">{plan.squad.length} játékos</span></div>
       {plan.squad.length > 0 && <div className="mp-squad-chips" aria-label="Kiválasztott játékosok">{plan.squad.map((player) => <button type="button" key={player.id} onClick={() => toggle(player)} aria-label={`${player.name} eltávolítása a keretből`}>{player.name} <span aria-hidden="true">×</span></button>)}</div>}
@@ -117,14 +93,5 @@ function MatchEditor({ match, teams, players, matches, onSave }) {
       <div className="mp-footer"><span>{plan.squad.length} játékos a meccskeretben</span><button type="button" className="neon-button" onClick={() => setStage('lineup')}>Tovább a felálláshoz →</button></div>
     </section>}
     {stage !== 'squad' && <MatchHalves teamAge={teams.find((team) => team.id === match.teamId)?.age} mode={stage} match={match} plan={plan} halves={halves} update={update} teamName={teams.find((team) => team.id === match.teamId)?.name || ""} />}
-=======
-    <section className="mp-card"><h2>1. Meccskeret · {plan.squad.length} játékos</h2><p>A kiválasztás csak erre a mérkőzésre vonatkozik, a játékos csapata megmarad. A változtatások automatikusan a meccshez kerülnek.</p>
-      <div className="mp-grid"><label>Játékosok innen<select value={source} onChange={(event) => setSource(event.target.value)}><option value="all">Minden csapat és vendégjátékos</option>{teams.map((team) => <option key={team.id} value={team.id}>{team.name} {team.age}</option>)}<option value="guest">Csapat nélküli / vendégjátékosok</option></select></label><label>Keresés<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Játékos neve" /></label></div>
-      <div className="mp-players">{candidates.map((player) => <label className="mp-player" key={player.id}><input type="checkbox" checked={plan.squad.some((item) => String(item.id) === String(player.id))} onChange={() => toggle(player)} /><span><strong>{player.name}</strong><small>{player.guest ? `Vendég · ${player.age || 'Korosztály nélkül'}` : teams.find((team) => team.id === player.teamId)?.name || 'Csapat nélkül'}</small></span></label>)}</div>
-      {!candidates.length && <p>Nincs találat. Új vendégjátékost alább vehetsz fel.</p>}
-      <form className="mp-grid" onSubmit={addGuest}><label>Új vendégjátékos neve<input name="name" required /></label><label>Korosztály<input name="age" placeholder="Pl. U11" required /></label><button type="submit">Felvétel a keretbe</button></form>
-    </section>
-    <MatchHalves match={match} plan={plan} halves={halves} update={update} teamName={teams.find((team) => team.id === match.teamId)?.name || ""} />
->>>>>>> e724eda73f7a03b47cbe594092c05e774d51d5aa
   </>
 }
