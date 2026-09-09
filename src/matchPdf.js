@@ -1,4 +1,4 @@
-import { formationRows } from './matchPlan.js'
+import { formationRows, matchRoles } from './matchPlan.js'
 
 const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
 
@@ -18,6 +18,7 @@ export function matchPdfHtml({ match, plan, halves, teamName, teamAge }) {
       </div>`).join('')}</div>`).join('')}
     </div>
     <div style="break-inside:avoid"><h2 style="font-size:16px;margin:22px 0 10px">Cserék</h2><p style="font-size:13px;line-height:1.8;margin:0">${bench.map((player) => escapeHtml(player.name)).join(' · ')}</p></div>
+    ${matchRoles.some(([key]) => name(plan.roles?.[key])) ? `<div style="break-inside:avoid;border-top:2px solid #8cbd9b;margin-top:18px;padding-top:12px"><h2 style="font-size:16px;margin:0 0 8px">Csapatkapitány és pontrúgások</h2>${matchRoles.filter(([key]) => name(plan.roles?.[key])).map(([key, label]) => `<div style="font-size:13px;line-height:1.6;overflow-wrap:anywhere"><span>${escapeHtml(label)}:</span> <strong>${name(plan.roles[key])}</strong></div>`).join('')}</div>` : ''}
   </div>`
 }
 

@@ -71,7 +71,7 @@ function MatchEditor({ match, teams, players, matches, onSave }) {
   function toggle(player) {
     const id = String(player.id)
     if (plan.squad.some((item) => String(item.id) === id)) {
-      update({ halves: halves.map((half) => removePlayerFromHalf(half, id)), squad: plan.squad.filter((item) => String(item.id) !== id), starters: Object.fromEntries(Object.entries(plan.starters).filter(([, value]) => value !== id)), substitutions: plan.substitutions.filter((item) => item.in !== id && item.out !== id) })
+      update({ roles: Object.fromEntries(Object.entries(plan.roles || {}).filter(([, value]) => String(value) !== id)), halves: halves.map((half) => removePlayerFromHalf(half, id)), squad: plan.squad.filter((item) => String(item.id) !== id), starters: Object.fromEntries(Object.entries(plan.starters).filter(([, value]) => value !== id)), substitutions: plan.substitutions.filter((item) => item.in !== id && item.out !== id) })
     } else update({ squad: [...plan.squad, { ...player, id }] })
   }
   function addGuest(event) {

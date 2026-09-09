@@ -1,3 +1,11 @@
+export const matchRoles = [
+  ['captain', 'Csapatkapitány'],
+  ['penalty', 'Büntető'],
+  ['freeKick', 'Szabadrúgás'],
+  ['cornerLeft', 'Szöglet – bal oldal'],
+  ['cornerRight', 'Szöglet – jobb oldal'],
+]
+
 export const formations = {
   '3–2–3': ['K', 'BV', 'KV', 'JV', 'BK', 'JK', 'BSZ', 'CS', 'JSZ'],
   '4–3–1': ['K', 'BV', 'BKV', 'JKV', 'JV', 'BK', 'KK', 'JK', 'CS'],
