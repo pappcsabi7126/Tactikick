@@ -1,14 +1,22 @@
 import { useState } from 'react'
-import { readMatchPlan, getHalves, removePlayerFromHalf } from './matchPlan'
+import { readMatchPlan, getHalves, removePlayerFromHalf, teamMatchDefaults, newTeamMatchPlan, standardHalves } from './matchPlan'
 import MatchHalves from './MatchHalves'
+import ConfirmDialog from './ConfirmDialog'
 import './match-planner.css'
 
-export default function MatchPlanner({ teams, players, trainings, setTrainings, initialMatchId = '', initialEdit = false }) {
+export default function MatchPlanner({ teams, players, trainings, setTrainings, onDeleteMatch, initialMatchId = '', initialEdit = false }) {
   const matches = trainings.filter((item) => item.calendarType === 'match').sort((a, b) => b.date.localeCompare(a.date))
   const [selectedId, setSelectedId] = useState(initialMatchId)
   const [showCreate, setShowCreate] = useState(false)
   const [editingId, setEditingId] = useState(initialEdit ? initialMatchId : null)
+  const [matchToDelete, setMatchToDelete] = useState(null)
+  const [copyFrom, setCopyFrom] = useState('')
+  const [createTeamId, setCreateTeamId] = useState('')
   const selected = matches.find((match) => String(match.id) === String(selectedId)) || matches[0]
+  function saveDefaults(defaults) {
+    const entry = { ...defaults, kind: 'match-defaults', savedAt: Date.now() }
+    setTrainings(current => current.map(item => item.id === selected.id ? { ...item, plan: [...(item.plan || []).filter(item => item.kind !== 'match-defaults'), entry] } : item))
+  }
   function saveMatchDetails(event) {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
@@ -26,17 +34,31 @@ export default function MatchPlanner({ teams, players, trainings, setTrainings, 
     const data = new FormData(event.currentTarget)
     const team = teams.find((item) => String(item.id) === data.get('team'))
     if (!team || !data.get('title').trim()) return
-    const match = { id: Date.now(), teamId: team.id, title: data.get('title').trim(), date: data.get('date'), startTime: data.get('time'), color: team.color, calendarType: 'match', plan: [], attendance: {} }
+    const source = matches.find(match => String(match.id) === copyFrom && String(match.teamId) === String(team.id))
+    const defaults = teamMatchDefaults(matches, team)
+    const lineup = source ? structuredClone({ ...readMatchPlan(source, team), halves: getHalves(readMatchPlan(source, team)) }) : newTeamMatchPlan(team, defaults)
+    lineup.acceptedSuggestions = []
+    // This timestamp is created only by the form submission handler.
+    // eslint-disable-next-line react-hooks/purity
+    const match = { id: Date.now(), teamId: team.id, title: data.get('title').trim(), date: data.get('date'), startTime: data.get('time'), color: team.color, calendarType: 'match', plan: [lineup, ...(defaults ? [structuredClone(defaults)] : [])], attendance: {} }
     setTrainings((current) => [...current, match])
     setSelectedId(String(match.id))
     event.currentTarget.reset()
     setShowCreate(false)
+    setCopyFrom('')
   }
   return <div className="page match-planner">
+    <ConfirmDialog open={Boolean(matchToDelete)} title="Mérkőzés törlése" description={`Biztosan törlöd a(z) „${matchToDelete?.title || ''}” mérkőzést? A meccsterv és a hozzá tartozó adatok is törlődnek.`} confirmLabel="Meccs törlése" onCancel={() => setMatchToDelete(null)} onConfirm={() => {
+      onDeleteMatch(matchToDelete)
+      setSelectedId('')
+      setEditingId(null)
+      setMatchToDelete(null)
+    }} />
     <div className="hero-header"><div><div className="eyebrow">TACTIKICK · MÉRKŐZÉSEK</div><h1>Meccstervező</h1><p>A kerettől a kezdő sípszóig.</p></div><button type="button" className="neon-button" aria-expanded={showCreate || !matches.length} onClick={() => setShowCreate(!showCreate)}>+ Új mérkőzés</button></div>
     {(showCreate || !matches.length) && <section className="mp-card"><div className="mp-section-heading"><h2>Új mérkőzés</h2>{matches.length > 0 && <button type="button" onClick={() => setShowCreate(false)}>Mégse</button>}</div>
       {!teams.length ? <p>Először hozz létre egy csapatot a Csapatok menüben.</p> : <form className="mp-grid" onSubmit={createMatch}>
-        <label>Csapat<select name="team">{teams.map((team) => <option key={team.id} value={team.id}>{team.name} {team.age}</option>)}</select></label>
+        <label>Csapat<select name="team" value={createTeamId || String(teams[0]?.id || '')} onChange={event => { setCreateTeamId(event.target.value); setCopyFrom('') }}>{teams.map((team) => <option key={team.id} value={team.id}>{team.name} {team.age}</option>)}</select></label>
+        <label>Meccsterv átvétele<select value={copyFrom} onChange={event => setCopyFrom(event.target.value)}><option value="">Új terv a csapat alapbeállításaival</option>{matches.filter(match => String(match.teamId) === (createTeamId || String(teams[0]?.id))).map(match => <option key={match.id} value={String(match.id)}>{match.date} · {match.title}</option>)}</select><small>A keret, felállás és cserék is átkerülnek.</small></label>
         <label>Mérkőzés / ellenfél<input name="title" required placeholder="Pl. U13 – Diósd" /></label>
         <label>Dátum<input name="date" type="date" required /></label><label>Kezdés<input name="time" type="time" required defaultValue="10:00" /></label>
         <button className="neon-button" type="submit">Meccs létrehozása</button>
@@ -52,18 +74,21 @@ export default function MatchPlanner({ teams, players, trainings, setTrainings, 
         <label>Dátum<input name="date" type="date" required defaultValue={selected.date || ''} /></label>
         <label>Kezdés<input name="time" type="time" required defaultValue={selected.startTime || ''} /></label>
         <button type="submit" className="neon-button">Mentés</button><button type="button" onClick={() => setEditingId(null)}>Mégse</button>
+        <button type="button" className="delete-confirm-button" onClick={() => setMatchToDelete(selected)}>Meccs törlése</button>
       </form></section>}
-      <MatchEditor key={selected.id} match={selected} teams={teams} players={players} matches={matches} onSave={(plan) => setTrainings((current) => current.map((item) => item.id === selected.id ? { ...item, plan: [...(item.plan || []).filter((entry) => entry.kind !== 'match-lineup'), plan] } : item))} /></>}</div>
+      <MatchEditor key={selected.id} match={selected} teams={teams} players={players} matches={matches} onSaveDefaults={saveDefaults} onSave={(plan) => setTrainings((current) => current.map((item) => item.id === selected.id ? { ...item, plan: [...(item.plan || []).filter((entry) => entry.kind !== 'match-lineup'), plan] } : item))} /></>}</div>
     </div>}
   </div>
 }
 
-function MatchEditor({ match, teams, players, matches, onSave }) {
-  const plan = readMatchPlan(match)
+function MatchEditor({ match, teams, players, matches, onSave, onSaveDefaults }) {
+  const team = teams.find((team) => String(team.id) === String(match.teamId))
+  const plan = match.plan?.some(item => item.kind === 'match-lineup') ? readMatchPlan(match, team) : newTeamMatchPlan(team, teamMatchDefaults(matches, team))
   const [source, setSource] = useState('all')
   const [query, setQuery] = useState('')
   const [stage, setStage] = useState('squad')
-  const halves = getHalves(plan)
+  const halves = standardHalves(plan)
+  const suggestionHistory = [...new Map(matches.filter(item => String(item.teamId) === String(match.teamId)).flatMap(item => readMatchPlan(item).acceptedSuggestions || []).map(item => [item.id, item])).values()]
   const guests = matches.flatMap((item) => readMatchPlan(item).squad).filter((player) => player.guest)
   const available = [...new Map([...guests, ...players].map((player) => [String(player.id), player])).values()]
   const candidates = available.filter((player) => (source === 'all' || (source === 'guest' ? player.guest || !player.teamId : String(player.teamId) === source)) && player.name.toLocaleLowerCase('hu').includes(query.toLocaleLowerCase('hu')))
@@ -92,6 +117,6 @@ function MatchEditor({ match, teams, players, matches, onSave }) {
       <details className="mp-guest"><summary>+ Vendégjátékos hozzáadása</summary><form className="mp-grid" onSubmit={addGuest}><label>Vendégjátékos neve<input name="name" required /></label><label>Korosztály<input name="age" placeholder="Pl. U11" required /></label><button type="submit">Felvétel a keretbe</button></form></details>
       <div className="mp-footer"><span>{plan.squad.length} játékos a meccskeretben</span><button type="button" className="neon-button" onClick={() => setStage('lineup')}>Tovább a felálláshoz →</button></div>
     </section>}
-    {stage !== 'squad' && <MatchHalves teamAge={teams.find((team) => team.id === match.teamId)?.age} mode={stage} match={match} plan={plan} halves={halves} update={update} teamName={teams.find((team) => team.id === match.teamId)?.name || ""} />}
+    {stage !== 'squad' && <MatchHalves suggestionHistory={suggestionHistory} onSaveDefaults={onSaveDefaults} teamAge={teams.find((team) => team.id === match.teamId)?.age} mode={stage} match={match} plan={plan} halves={halves} update={update} teamName={teams.find((team) => team.id === match.teamId)?.name || ""} />}
   </>
 }

@@ -1,8 +1,19 @@
-import { formationRows, matchRoles } from './matchPlan.js'
+import { formationRows, matchRoles, matchTimeline, playingMinutes, getMatchFormat } from './matchPlan.js'
 
 const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
 
-export function matchPdfHtml({ match, plan, halves, teamName, teamAge }) {
+export function matchPdfHtml({ match, plan, halves, teamName, teamAge, full = false }) {
+  if (full) {
+    const minutes = playingMinutes(plan, halves)
+    const timeline = matchTimeline(plan, halves)
+    const name = id => escapeHtml(plan.squad.find(player => String(player.id) === String(id))?.name || 'Üres poszt')
+    return `<div style="font-family:Arial,sans-serif;color:#173c2b;background:white;width:740px;padding:20px;box-sizing:border-box">
+      <h1>${escapeHtml(match.title)}</h1><p>${escapeHtml(teamName)} · ${escapeHtml(teamAge)} · ${escapeHtml(match.date)} · ${escapeHtml(match.startTime)} · ${getMatchFormat(plan)} · ${plan.duration} perc</p>
+      ${halves.map((half, index) => `<section style="break-inside:avoid"><h2>${index + 1}. félidő · ${half.formation}</h2>${matchPdfHtml({ match: { ...match, title: '' }, plan, halves: [half], teamName: '', teamAge: '' }).replace('width:740px;padding:20px', 'width:100%;padding:0')}</section>`).join('')}
+      <h2>Időzített összeállítások</h2>${timeline.segments.map(segment => `<p style="break-inside:avoid"><strong>${segment.start}–${segment.end}. perc</strong><br>${Object.entries(segment.lineup).map(([position, id]) => `${position}: ${name(id)}`).join(' · ')}</p>`).join('')}
+      <h2>Tervezett játékpercek</h2><table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Játékos</th><th>Pályán</th><th>Kispadon</th></tr></thead><tbody>${plan.squad.map(player => `<tr><td style="padding:8px;border-bottom:1px solid #dce4df">${escapeHtml(player.name)}</td><td align="center">${minutes[String(player.id)] || 0} perc</td><td align="center">${plan.duration - (minutes[String(player.id)] || 0)} perc</td></tr>`).join('')}</tbody></table>
+    </div>`
+  }
   const half = halves[0]
   const starters = new Set(Object.values(half.starters).map(String))
   const bench = plan.squad.filter((player) => !starters.has(String(player.id))).sort((a, b) => a.name.localeCompare(b.name, 'hu'))

@@ -17,6 +17,7 @@ function safeFileName(value) {
 }
 
 function statusSymbol(status) {
+  if (status === 'unrecorded') return '—'
   if (status === 'absent' || status === 'excused') return '×'
   return '✓'
 }
@@ -51,14 +52,14 @@ export async function downloadAttendancePdf({
     .sort((a, b) => a.name.localeCompare(b.name, 'hu-HU', { sensitivity: 'base', numeric: true }))
     .map((player) => {
       const cells = trainingColumns.map((training) => {
-        const status = training.attendance?.[player.id] === 'excused' ? 'absent' : training.attendance?.[player.id] || 'present'
+        const status = training.attendance?.[player.id] === 'excused' ? 'absent' : training.attendance?.[player.id] || 'unrecorded'
         return `<td class="status status-${escapeHtml(status)}">${statusSymbol(status)}</td>`
       }).join('')
 
       let present = 0
       let absent = 0
       trainingColumns.forEach((training) => {
-        const status = training.attendance?.[player.id] || 'present'
+        const status = training.attendance?.[player.id] || 'unrecorded'
         if (status === 'present') present += 1
         if (status === 'absent') absent += 1
       })
@@ -71,7 +72,7 @@ export async function downloadAttendancePdf({
           <td class="player"><strong>${escapeHtml(player.name)}</strong></td>
           ${includeTeam ? `<td>${escapeHtml(team?.name || '—')}</td>` : ''}
           ${cells}
-          <td class="total"><strong>${percentage}%</strong><span>${present}/${counted || trainingColumns.length}</span></td>
+          <td class="total"><strong>${percentage}%</strong><span>${present}/${counted}</span></td>
         </tr>
       `
     }).join('')

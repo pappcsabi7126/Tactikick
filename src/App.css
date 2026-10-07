@@ -390,10 +390,39 @@
 }
 
 
-.auth-google { position: relative; }
+.auth-screen .auth-google {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 14px 18px;
+  border: 1px solid #dce4df;
+  border-radius: 14px;
+  background: #fff;
+  color: #26382d;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 2px 5px rgba(23, 60, 43, .04);
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.auth-screen .auth-google:hover:not(:disabled) {
+  border-color: #9eb6a7;
+  box-shadow: 0 5px 16px rgba(23, 60, 43, .09);
+  transform: translateY(-1px);
+}
+.auth-screen .auth-google:active:not(:disabled) { transform: translateY(0); }
+.auth-screen .auth-google:focus-visible { outline: 3px solid #22c55e; outline-offset: 3px; }
+.auth-screen .auth-google:disabled { opacity: .6; cursor: wait; }
 .auth-google .google-mark {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;

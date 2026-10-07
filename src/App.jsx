@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import TrainingCreationChooser from './TrainingCreationChooser'
 import TrainingDetailsModal from './TrainingDetailsModal'
+import { updateAttendance } from './attendance'
 import TrainingEditorModal from './TrainingEditorModal'
 import {
   createTranslator,
@@ -124,14 +125,14 @@ function getPlayerAttendanceStats(playerId, trainings, teamId) {
   const excused = 0
 
   sessions.forEach((training) => {
-    const status = training.attendance?.[playerId] || 'present'
+    const status = training.attendance?.[playerId] || 'unrecorded'
     if (status === 'present') present += 1
     else if (status === 'absent' || status === 'excused') absent += 1
   })
 
   const counted = present + absent
   return {
-    trainings: sessions.length,
+    trainings: counted,
     present,
     absent,
     excused,
@@ -140,7 +141,8 @@ function getPlayerAttendanceStats(playerId, trainings, teamId) {
 }
 
 
-const validPages = new Set(['dashboard','teams','trainings','matches','attendance','calendar','club','statistics','settings','profile'])
+const clubEnabled = false
+const validPages = new Set(['dashboard','teams','trainings','matches','attendance','calendar', ...(clubEnabled ? ['club'] : []),'statistics','settings','profile'])
 function getRouteFromLocation() {
   const parts = window.location.pathname.split('/').filter(Boolean)
   if (parts[0] === 'team' && parts[1]) return { page: 'team', teamId: parts[1] }
@@ -522,6 +524,7 @@ function App() {
   ) : null
 
   function navigate(page) {
+    if (page === 'club' && !clubEnabled) page = 'dashboard'
     setMobileMenuOpen(false)
     setActivePage(page)
     setOpenTrainingChooserOnTeam(false)
@@ -643,6 +646,15 @@ function App() {
     setTeamToDelete(team)
   }
 
+  async function deleteMatch(match) {
+    try {
+      if (cloudEnabled && session?.user?.id) await deleteCoachTraining(session.user.id, match.id)
+      setTrainings(current => current.filter(item => item.id !== match.id))
+    } catch (error) {
+      setCloudError(error.message || 'A mérkőzés törlése nem sikerült.')
+    }
+  }
+
   function confirmDeleteTeam() {
     if (!teamToDelete) return
 
@@ -752,7 +764,7 @@ function App() {
     { id: 'trainings', icon: '◉', label: t('trainings') },
     { id: 'matches', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m12 8 4 3-1.5 4h-5L8 11Z M12 8V3 M16 11l4.5-2 M14.5 15l3 4.5 M9.5 15l-3 4.5 M8 11 3.5 9" /></svg>, label: 'Meccstervező' },
     { id: 'attendance', icon: '✓', label: t('attendance') },
-    { id: 'club', icon: '♜', label: t('club') },
+    ...(clubEnabled ? [{ id: 'club', icon: '♜', label: t('club') }] : []),
   ]
 
   return (
@@ -1008,11 +1020,11 @@ function App() {
 
         {activePage === 'matches' && (
           <Suspense fallback={<PageLoading />}>
-            <MatchPlanner initialMatchId={matchEditTarget || ''} initialEdit={matchEditTarget !== null} teams={teams} players={players} trainings={trainings} setTrainings={setTrainings} />
+            <MatchPlanner onDeleteMatch={deleteMatch} initialMatchId={matchEditTarget || ''} initialEdit={matchEditTarget !== null} teams={teams} players={players} trainings={trainings} setTrainings={setTrainings} />
           </Suspense>
         )}
 
-        {activePage === 'club' && (
+        {clubEnabled && activePage === 'club' && (
           <Suspense fallback={<PageLoading />}><ClubPage
             teams={teamsWithStats}
             trainings={trainings}
@@ -1212,6 +1224,16 @@ function App() {
                 </button>
                 <button type="submit" className="neon-button">
                   {t('saveChanges')}
+                </button>
+                <button
+                  type="button"
+                  className="delete-confirm-button"
+                  onClick={() => {
+                    requestDeleteTeam(teams.find((team) => team.id === teamToEdit.id) || teamToEdit)
+                    setTeamToEdit(null)
+                  }}
+                >
+                  {t('deleteTeam')}
                 </button>
               </div>
             </form>
@@ -2027,7 +2049,7 @@ function TrainingsPage({ t, trainings, teams, players, setTrainings, onNavigate,
           players={players.filter((player) => player.teamId === selectedTraining.teamId)}
           onClose={() => setSelectedTrainingId(null)}
           onEdit={(training) => { setSelectedTrainingId(null); onEditTraining(training) }}
-          onAttendanceChange={(trainingId, playerId, status) => setTrainings((current) => current.map((training) => training.id === trainingId ? { ...training, attendance: { ...training.attendance, [playerId]: status } } : training))}
+          onAttendanceChange={(trainingId, playerId, status) => setTrainings((current) => current.map((training) => String(training.id) === String(trainingId) ? updateAttendance(training, playerId, status) : training))}
         />
       )}
     </div>
@@ -2088,10 +2110,11 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
   }
 
   function getStatus(training, playerId) {
-    return training.attendance?.[playerId] === 'excused' ? 'absent' : training.attendance?.[playerId] || 'present'
+    return training.attendance?.[playerId] === 'excused' ? 'absent' : training.attendance?.[playerId] || 'unrecorded'
   }
 
   function statusLabel(status) {
+    if (status === 'unrecorded') return '—'
     if (status === 'absent') return '×'
     if (status === 'excused') return '◷'
     return '✓'
@@ -2326,7 +2349,7 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
                                 ? t('present')
                                 : status === 'absent'
                                   ? t('absent')
-                                  : t('excused')
+                                  : status === 'unrecorded' ? 'Nincs rögzítve' : t('excused')
                             }`}
                           >
                             <span className={statusClass(status)}>
@@ -2339,7 +2362,7 @@ function AttendancePage({ t, language = 'hu', teams = [], players = [], training
                       <td className="attendance-total-cell">
                         <strong>{percentage}%</strong>
                         <small>
-                          {present}/{counted || monthTrainings.length}
+                          {present}/{counted}
                         </small>
                       </td>
                     </tr>

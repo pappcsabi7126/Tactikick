@@ -469,22 +469,6 @@ export default function TeamPage({
       ])
     }
 
-    setTrainings((currentTrainings) =>
-      currentTrainings.map((training) => {
-        if (sharedTrainings && training.teamId !== team.id) {
-          return training
-        }
-
-        return {
-          ...training,
-          attendance: {
-            ...training.attendance,
-            [player.id]: 'present',
-          },
-        }
-      }),
-    )
-
     setNewPlayer({
       name: '',
       birthYear: '',
@@ -968,7 +952,7 @@ export default function TeamPage({
     const excused = 0
 
     relevantTrainings.forEach((training) => {
-      const status = training.attendance?.[playerId] || 'present'
+      const status = training.attendance?.[playerId] || 'unrecorded'
       if (status === 'present') present += 1
       else if (status === 'absent' || status === 'excused') absent += 1
     })
@@ -976,7 +960,7 @@ export default function TeamPage({
     const counted = present + absent
 
     return {
-      trainings: relevantTrainings.length,
+      trainings: counted,
       present,
       absent,
       excused,
@@ -990,8 +974,7 @@ export default function TeamPage({
 
   function getAttendanceStatus(playerId) {
     return (
-      selectedTraining?.attendance?.[playerId] ||
-      'present'
+      selectedTraining?.attendance?.[playerId] || 'unrecorded'
     )
   }
 
@@ -1005,7 +988,7 @@ export default function TeamPage({
       }
 
       const currentStatus =
-        training.attendance?.[playerId] || 'present'
+        training.attendance?.[playerId] || 'unrecorded'
 
       const nextStatus =
         currentStatus === 'present'
@@ -1527,14 +1510,14 @@ export default function TeamPage({
                       aria-label={
                         status === 'present'
                           ? t('present')
-                          : t('absent')
+                          : status === 'unrecorded' ? 'Nincs rögzítve' : t('absent')
                       }
                     >
                       {status === 'present'
                         ? '✓'
                         : status === 'absent'
                           ? '×'
-                          : '◷'}
+                          : status === 'unrecorded' ? '—' : '◷'}
                     </div>
 
                   </button>

@@ -1,15 +1,20 @@
 import { useState } from 'react'
-import { formations, formationRows, quarterLineup, validateHalves, changeFormation, matchRoles } from './matchPlan'
+import { formations, formationRows, quarterLineup, matchTimeline, changeFormation, matchRoles, matchFormats, getMatchFormat, changeMatchFormat } from './matchPlan'
 import { downloadMatchPdf } from './matchPdf'
+import MatchMinutes from './MatchMinutes'
+import SubstitutionSuggestions from './SubstitutionSuggestions.jsx'
 
-export default function MatchHalves({ match, plan, halves, update, teamName, teamAge, mode = 'lineup' }) {
+export default function MatchHalves({ match, plan, halves, update, teamName, teamAge, onSaveDefaults, suggestionHistory = [], mode = 'lineup' }) {
   const [halfIndex, setHalfIndex] = useState(0)
   const [position, setPosition] = useState(null)
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState('')
+  const [fullPdf, setFullPdf] = useState(true)
+  const [defaultsSaved, setDefaultsSaved] = useState(false)
+  const format = getMatchFormat(plan)
   const half = halves[halfIndex]
   const selectedPosition = formations[half.formation].includes(position) ? position : formations[half.formation][0]
-  const warnings = validateHalves(halves)
+  const warnings = matchTimeline(plan, halves).errors
   const roster = [...plan.squad].sort((a, b) => a.name.localeCompare(b.name, 'hu'))
   const playerName = (id) => plan.squad.find((player) => String(player.id) === String(id))?.name || 'Játékos választása'
   const saveHalf = (next) => update({ halves: halves.map((current, index) => index === halfIndex ? next : current) })
@@ -23,25 +28,30 @@ export default function MatchHalves({ match, plan, halves, update, teamName, tea
   }
 
   if (mode === 'summary') return <>
-    <section className="mp-card"><div className="mp-section-heading"><div><h2>Készen a mérkőzésre</h2><p>{roster.length} játékos · 4 × {plan.duration / 4} perc · {teamName}</p></div><button type="button" className="neon-button" disabled={exporting || warnings.length > 0} onClick={async () => { setExporting(true); setError(''); try { await downloadMatchPdf({ match, plan, halves, teamName, teamAge }) } catch { setError('A PDF letöltése nem sikerült. Próbáld újra.') } finally { setExporting(false) } }}>{exporting ? 'PDF készítése…' : '↓ Meccsterv PDF'}</button></div>
+    <section className="mp-card"><div className="mp-section-heading"><div><h2>Készen a mérkőzésre</h2><p>{matchFormats[format].label} · {roster.length} játékos · {plan.duration} perc · {teamName}</p></div><button type="button" className="neon-button" disabled={exporting || warnings.length > 0} onClick={async () => { setExporting(true); setError(''); try { await downloadMatchPdf({ match, plan, halves, teamName, teamAge, full: fullPdf }) } catch { setError('A PDF letöltése nem sikerült. Próbáld újra.') } finally { setExporting(false) } }}>{exporting ? 'PDF készítése…' : '↓ Meccsterv PDF'}</button></div>
+      <label><input type="checkbox" checked={fullPdf} onChange={event => setFullPdf(event.target.checked)} /> Teljes PDF mindkét félidővel és játékpercekkel</label><MatchMinutes plan={plan} halves={halves}  />
       {warnings.map((warning) => <p role="alert" key={warning}>{warning}</p>)}{error && <p role="alert">{error}</p>}
-      <h3>Csapatkapitány és pontrúgások</h3>
+    <h3>Csapatkapitány és pontrúgások</h3>
       <div className="mp-bench">{matchRoles.map(([key, label]) => <span key={key}>{label}: <strong>{plan.roles?.[key] ? playerName(plan.roles[key]) : 'Nincs kijelölve'}</strong></span>)}</div>
-      <div className="mp-summary">{halves.map((current, index) => <div key={index}><h3>{index + 1}. félidő · {current.formation}</h3>{pitch(current)}<p>Csere a {(index * 2 + 1) * plan.duration / 4}. percben.</p></div>)}</div>
+      <div className="mp-summary">{halves.map((current, index) => <div key={index}><h3>{index + 1}. félidő · {current.formation}</h3>{pitch(current)}<p>{current.changes ? current.changes.length + ' időzített csere' : 'Csere a félidő közepén'}</p></div>)}</div>
     </section><section className="mp-card"><h2>Meccskeret · {roster.length}</h2>{roster.length ? <ol className="mp-roster">{roster.map((player) => <li key={player.id}>{player.name}</li>)}</ol> : <p>A Meccskeret nézetben válassz játékosokat.</p>}</section>
   </>
 
   return <section className="mp-card">
+    <label>Játékforma<select value={format} onChange={(event) => update(changeMatchFormat({ ...plan, halves }, event.target.value))}>{Object.entries(matchFormats).map(([value, config]) => <option key={value} value={value}>{config.label}</option>)}</select></label>
     <div className="mp-section-heading"><div><h2>Felállás és cserék</h2><p>Válassz posztot a pályán, majd rendelj hozzá játékost.</p></div><label className="mp-duration">Játékidő (perc)<input type="number" min="4" max="180" value={plan.duration} onChange={(event) => { const duration = Number(event.target.value); if (Number.isInteger(duration) && duration >= 4 && duration <= 180) update({ duration }) }} /></label></div>
-    <div className="mp-half-toolbar"><div className="mp-half-switch" role="group" aria-label="Félidő">{halves.map((_, index) => <button type="button" key={index} aria-pressed={halfIndex === index} className={halfIndex === index ? 'is-selected' : ''} onClick={() => setHalfIndex(index)}>{index + 1}. félidő <small>{index * plan.duration / 2}–{(index + 1) * plan.duration / 2}′</small></button>)}</div><label>Felállás<select value={half.formation} onChange={(event) => saveHalf(changeFormation(half, event.target.value))}>{Object.keys(formations).map((name) => <option key={name}>{name}</option>)}</select></label></div>
+    <div className="mp-half-toolbar"><div className="mp-half-switch" role="group" aria-label="Félidő">{halves.map((_, index) => <button type="button" key={index} aria-pressed={halfIndex === index} className={halfIndex === index ? 'is-selected' : ''} onClick={() => setHalfIndex(index)}>{index + 1}. félidő <small>{index * plan.duration / 2}–{(index + 1) * plan.duration / 2}′</small></button>)}</div><label>Felállás<select value={half.formation} onChange={(event) => saveHalf(changeFormation(half, event.target.value))}>{matchFormats[format].formations.map((name) => <option key={name}>{name}</option>)}</select></label></div>
     {!plan.squad.length && <p>Először a Meccskeret nézetben add hozzá a játékosokat.</p>}
     {!formations[plan.formation] && !plan.halves && <p role="status">A korábbi felállás közös posztjai megmaradtak. Ellenőrizd az új posztokat.</p>}
     {!plan.halves && plan.substitutions.length > 0 && <p role="status">A korábbi cserékből a negyedek kezdetén érvényes összeállításokat vettük át. Ellenőrizd a két félidőt.</p>}
-    <div className="mp-tactics-layout"><div><div className="mp-pitch-caption"><span>{half.formation}</span><span>{Object.values(half.starters).filter(Boolean).length} / 9 poszt kiosztva</span></div>{pitch(half, true)}<p className="mp-legend">K: kapus · V: védő · BK/KK/JK: középpályás · CS: csatár · SZ: szélső · B/J: bal/jobb</p></div>
+    <div className="mp-tactics-layout"><div><div className="mp-pitch-caption"><span>{half.formation}</span><span>{Object.values(half.starters).filter(Boolean).length} / {formations[half.formation].length} poszt kiosztva</span></div>{pitch(half, true)}<p className="mp-legend">K: kapus · V: védő · BK/KK/JK: középpályás · CS/BCS/JCS: csatár · SZ: szélső · B/J: bal/jobb</p></div>
       <div className="mp-assignment"><span className="eyebrow">KIVÁLASZTOTT POSZT</span><h3>{selectedPosition}</h3><label>{halfIndex * 2 + 1}. negyed · kezdő<select value={half.starters[selectedPosition] || ''} onChange={(event) => saveHalf({ ...half, starters: { ...half.starters, [selectedPosition]: event.target.value }, replacements: { ...half.replacements, [selectedPosition]: '' } })}><option value="">Üres poszt</option>{roster.map((player) => <option key={player.id} value={String(player.id)} disabled={Object.entries(half.starters).some(([pos, id]) => pos !== selectedPosition && id === String(player.id))}>{player.name}</option>)}</select></label>
-      <label>{halfIndex * 2 + 2}. negyed · csere<select disabled={!half.starters[selectedPosition]} value={half.replacements[selectedPosition] || ''} onChange={(event) => saveHalf({ ...half, replacements: { ...half.replacements, [selectedPosition]: event.target.value } })}><option value="">Marad a kezdő</option>{roster.filter((player) => String(player.id) !== half.starters[selectedPosition]).map((player) => <option key={player.id} value={String(player.id)} disabled={Object.entries(quarterLineup(half)).some(([pos, id]) => pos !== selectedPosition && id === String(player.id))}>{player.name}</option>)}</select></label><p>Csere a {(halfIndex * 2 + 1) * plan.duration / 4}. percben. Üres csere esetén a kezdő marad.</p><p>A két félidő összeállítását külön tervezheted meg.</p></div>
+      {!half.changes && <label>{halfIndex * 2 + 2}. negyed · csere<select disabled={!half.starters[selectedPosition]} value={half.replacements[selectedPosition] || ''} onChange={(event) => saveHalf({ ...half, replacements: { ...half.replacements, [selectedPosition]: event.target.value } })}><option value="">Marad a kezdő</option>{roster.filter((player) => String(player.id) !== half.starters[selectedPosition]).map((player) => <option key={player.id} value={String(player.id)} disabled={Object.entries(quarterLineup(half)).some(([pos, id]) => pos !== selectedPosition && id === String(player.id))}>{player.name}</option>)}</select></label>}<p>{half.changes ? 'A cseréket alább, az Időzített cserék résznél szerkesztheted.' : 'A félidő közepén a kijelölt csere áll be.'}</p><p>A két félidő összeállítását külön tervezheted meg.</p></div>
     </div>
-    <div className="mp-benches">{[half.starters, quarterLineup(half)].map((lineup, quarter) => { const bench = roster.filter((player) => !Object.values(lineup).includes(String(player.id))); return <div key={quarter}><h3>{halfIndex * 2 + quarter + 1}. negyed · Kispad ({bench.length})</h3><div className="mp-bench">{bench.map((player) => <span key={player.id}>{player.name}</span>)}{!bench.length && <p>Nincs cserejátékos.</p>}</div></div> })}</div>
+    {!half.changes && <div className="mp-benches">{[half.starters, quarterLineup(half)].map((lineup, quarter) => { const bench = roster.filter((player) => !Object.values(lineup).includes(String(player.id))); return <div key={quarter}><h3>{halfIndex * 2 + quarter + 1}. negyed · Kispad ({bench.length})</h3><div className="mp-bench">{bench.map((player) => <span key={player.id}>{player.name}</span>)}{!bench.length && <p>Nincs cserejátékos.</p>}</div></div> })}</div>}
+    <SubstitutionSuggestions plan={plan} halves={halves} halfIndex={halfIndex} position={selectedPosition} history={suggestionHistory} update={update} />
+    <MatchMinutes plan={plan} halves={halves}  />
+    <button type="button" className="secondary-button" onClick={() => { onSaveDefaults({ format, formation: half.formation, duration: plan.duration }); setDefaultsSaved(true) }}>Mentés a csapat alapbeállításaként</button>{defaultsSaved && <p role="status">A következő új meccs ezekkel a beállításokkal indul.</p>}
     <h3>Csapatkapitány és pontrúgások</h3>
     <p>A kijelölések az egész mérkőzésre szólnak, automatikusan mentődnek, és a PDF-re is rákerülnek.</p>
     <div className="mp-grid">{matchRoles.map(([key, label]) => <label key={key}>{label}<select disabled={!roster.length} value={plan.roles?.[key] || ''} onChange={(event) => update({ roles: { ...plan.roles, [key]: event.target.value } })}><option value="">Nincs kijelölve</option>{roster.map((player) => <option key={player.id} value={String(player.id)}>{player.name}</option>)}</select></label>)}</div>

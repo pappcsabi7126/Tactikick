@@ -74,3 +74,18 @@
 @media(max-width: 1200px) { .mp-workspace { grid-template-columns: 1fr; } .mp-match-list nav { display: flex; max-height: none; overflow-x: auto; } .match-planner .mp-match-option { flex: 0 0 210px; } .mp-match-list { padding: 14px; } }
 @media(max-width: 900px) { .mp-tactics-layout { grid-template-columns: 1fr; } .mp-assignment { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; } .mp-assignment h3 { margin: 0; } .mp-assignment label + label { margin: 0; } .mp-assignment p { grid-column: 1 / -1; margin: 0; } .mp-summary { grid-template-columns: 1fr; } }
 @media(max-width: 600px) { .mp-card { padding: 16px; } .mp-match-heading, .mp-section-heading, .mp-footer { flex-wrap: wrap; } .mp-stage-nav { gap: 2px; padding: 4px; } .mp-stage-nav button { padding: 10px 4px; font-size: 11px; } .mp-stage-nav button span { display: block; margin: 0 0 4px; } .mp-half-toolbar { align-items: end; gap: 8px; } .mp-half-switch { gap: 4px; } .mp-half-switch button { padding: 8px; font-size: 12px; } .mp-benches { grid-template-columns: 1fr; gap: 10px; } .mp-assignment { padding: 14px; } .mp-pitch { min-height: 390px; padding: 18px 5px; } .mp-position strong { font-size: 10px; } .mp-footer button { width: 100%; } .mp-players { grid-template-columns: 1fr; } }
+.mp-minutes { margin: 24px 0; padding-top: 20px; border-top: 1px solid var(--line, #dce4df); }
+.mp-minutes summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+.mp-minutes summary:focus-visible { outline: 2px solid #21b864; outline-offset: 3px; border-radius: 6px; }
+.mp-change-row { margin-bottom: 12px; align-items: end; }
+.mp-table-scroll { overflow-x: auto; }
+.mp-minutes-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mp-minutes-table th, .mp-minutes-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--line, #dce4df); }
+.mp-minutes-table th { color: var(--text-muted, #68756c); font-size: 12px; }
+.mp-timeline-item { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line, #dce4df); font-size: 13px; }
+.mp-timeline-item strong { min-width: 70px; }
+.mp-suggestions { margin: 20px 0; }
+.mp-suggestions > label { display: grid; gap: 8px; margin-top: 16px; }
+.mp-suggestion { margin: 12px 0; padding: 16px; border: 1px solid var(--line, #dce4df); border-radius: 12px; background: var(--surface-2, #f6faf7); }
+.mp-suggestion p { font-size: 13px; line-height: 1.6; }
+.mp-suggestions details .mp-grid { padding: 12px 0; border-bottom: 1px solid var(--line, #dce4df); align-items: center; }
