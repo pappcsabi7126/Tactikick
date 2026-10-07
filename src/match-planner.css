@@ -85,6 +85,20 @@
 .mp-timeline-item { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line, #dce4df); font-size: 13px; }
 .mp-timeline-item strong { min-width: 70px; }
 .mp-suggestions { margin: 20px 0; }
+.mp-drag-roster { display: none; }
+.mp-lineup-sidebar { min-width: 0; }
+@media (min-width: 901px) and (hover: hover) and (pointer: fine) {
+  .mp-assignment .mp-starting-select { display: none; }
+  .mp-drag-roster { display: block; padding: 16px; margin-bottom: 14px; border: 1px solid var(--line, #dce5df); border-radius: 14px; background: var(--mp-soft); }
+  .mp-drag-roster h3 { margin: 0; }
+  .mp-drag-players { display: grid; gap: 8px; max-height: 340px; overflow-y: auto; margin-bottom: 12px; }
+  .match-planner .mp-drag-player { display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: grab; }
+  .mp-drag-player strong { overflow-wrap: anywhere; font-size: 12px; }
+  .mp-drag-player small { flex-shrink: 0; color: var(--mp-muted); font-size: 10px; }
+  .mp-drag-player.is-dragging { opacity: .5; }
+  .match-planner button.mp-position[draggable=true] { cursor: grab; }
+  .match-planner button.mp-position.is-drop-target { background: #ffffff35; border-color: #d8f5dd; border-style: dashed; box-shadow: 0 0 0 3px #ffffff20; }
+}
 .mp-suggestions > label { display: grid; gap: 8px; margin-top: 16px; }
 .mp-suggestion { margin: 12px 0; padding: 16px; border: 1px solid var(--line, #dce4df); border-radius: 12px; background: var(--surface-2, #f6faf7); }
 .mp-suggestion p { font-size: 13px; line-height: 1.6; }

@@ -7,6 +7,8 @@ import SubstitutionSuggestions from './SubstitutionSuggestions.jsx'
 export default function MatchHalves({ match, plan, halves, update, teamName, teamAge, onSaveDefaults, suggestionHistory = [], mode = 'lineup' }) {
   const [halfIndex, setHalfIndex] = useState(0)
   const [position, setPosition] = useState(null)
+  const [draggedPlayer, setDraggedPlayer] = useState('')
+  const [dropPosition, setDropPosition] = useState(null)
   const [exporting, setExporting] = useState(false)
   const [error, setError] = useState('')
   const [fullPdf, setFullPdf] = useState(true)
@@ -18,12 +20,37 @@ export default function MatchHalves({ match, plan, halves, update, teamName, tea
   const roster = [...plan.squad].sort((a, b) => a.name.localeCompare(b.name, 'hu'))
   const playerName = (id) => plan.squad.find((player) => String(player.id) === String(id))?.name || 'Játékos választása'
   const saveHalf = (next) => update({ halves: halves.map((current, index) => index === halfIndex ? next : current) })
+  const desktopDrag = () => window.matchMedia('(min-width: 901px) and (hover: hover) and (pointer: fine)').matches
+  const clearDrag = () => { setDraggedPlayer(''); setDropPosition(null) }
+  const startDrag = (event, id) => {
+    if (!desktopDrag() || !id) { event.preventDefault(); return }
+    event.dataTransfer.setData('application/x-tactikick-player', String(id))
+    event.dataTransfer.effectAllowed = 'move'
+    setDraggedPlayer(String(id))
+  }
+  const assignPlayer = (pos, id) => {
+    if (!roster.some(player => String(player.id) === String(id))) return
+    const starters = { ...half.starters }
+    const replacements = { ...half.replacements }
+    const source = Object.keys(starters).find(key => String(starters[key]) === String(id))
+    if (source === pos) return
+    if (source) { starters[source] = starters[pos] || ''; replacements[source] = '' }
+    starters[pos] = String(id)
+    replacements[pos] = ''
+    saveHalf({ ...half, starters, replacements })
+    setPosition(pos)
+  }
 
   function pitch(current, interactive = false) {
     return <div className="mp-pitch"><div className="mp-pitch-center" aria-hidden="true" />{formationRows[current.formation].map((row, rowIndex) => <div className="mp-pitch-row" key={rowIndex}>{row.map((pos) => {
       const id = current.starters[pos]
       const content = <><span className="mp-shirt">{pos}</span><strong>{id ? playerName(id) : 'Üres poszt'}</strong>{current.replacements[pos] && <small>↳ {playerName(current.replacements[pos])}</small>}</>
-      return interactive ? <button type="button" className={`mp-position ${selectedPosition === pos ? 'is-selected' : ''}`} key={pos} aria-pressed={selectedPosition === pos} aria-label={`${pos}: ${playerName(id)}`} onClick={() => setPosition(pos)}>{content}</button> : <div className="mp-position" key={pos}>{content}</div>
+      return interactive ? <button type="button" className={`mp-position ${selectedPosition === pos ? 'is-selected' : ''} ${dropPosition === pos ? 'is-drop-target' : ''}`} key={pos} aria-pressed={selectedPosition === pos} aria-label={`${pos}: ${playerName(id)}`} onClick={() => setPosition(pos)}
+        draggable={Boolean(id)} onDragStart={event => startDrag(event, id)} onDragEnd={clearDrag}
+        onDragOver={event => { if (desktopDrag() && draggedPlayer) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; setDropPosition(pos) } }}
+        onDragLeave={event => { if (!event.currentTarget.contains(event.relatedTarget)) setDropPosition(null) }}
+        onDrop={event => { event.preventDefault(); if (desktopDrag() && draggedPlayer) assignPlayer(pos, event.dataTransfer.getData('application/x-tactikick-player')); clearDrag() }}
+      >{content}</button> : <div className="mp-position" key={pos}>{content}</div>
     })}</div>)}</div>
   }
 
@@ -45,9 +72,13 @@ export default function MatchHalves({ match, plan, halves, update, teamName, tea
     {!formations[plan.formation] && !plan.halves && <p role="status">A korábbi felállás közös posztjai megmaradtak. Ellenőrizd az új posztokat.</p>}
     {!plan.halves && plan.substitutions.length > 0 && <p role="status">A korábbi cserékből a negyedek kezdetén érvényes összeállításokat vettük át. Ellenőrizd a két félidőt.</p>}
     <div className="mp-tactics-layout"><div><div className="mp-pitch-caption"><span>{half.formation}</span><span>{Object.values(half.starters).filter(Boolean).length} / {formations[half.formation].length} poszt kiosztva</span></div>{pitch(half, true)}<p className="mp-legend">K: kapus · V: védő · BK/KK/JK: középpályás · CS/BCS/JCS: csatár · SZ: szélső · B/J: bal/jobb</p></div>
-      <div className="mp-assignment"><span className="eyebrow">KIVÁLASZTOTT POSZT</span><h3>{selectedPosition}</h3><label>{halfIndex * 2 + 1}. negyed · kezdő<select value={half.starters[selectedPosition] || ''} onChange={(event) => saveHalf({ ...half, starters: { ...half.starters, [selectedPosition]: event.target.value }, replacements: { ...half.replacements, [selectedPosition]: '' } })}><option value="">Üres poszt</option>{roster.map((player) => <option key={player.id} value={String(player.id)} disabled={Object.entries(half.starters).some(([pos, id]) => pos !== selectedPosition && id === String(player.id))}>{player.name}</option>)}</select></label>
+      <div className="mp-lineup-sidebar"><div className="mp-drag-roster"><h3>Játékosok</h3><p>Húzd a játékosokat a posztokra. Foglalt posztnál helyet cserélnek. Kattintással a kijelölt posztra teheted őket.</p><div className="mp-drag-players">{roster.map(player => {
+        const assigned = Object.entries(half.starters).find(([, id]) => String(id) === String(player.id))?.[0]
+        return <button type="button" key={player.id} draggable onDragStart={event => startDrag(event, player.id)} onDragEnd={clearDrag} className={`mp-drag-player ${draggedPlayer === String(player.id) ? 'is-dragging' : ''}`} onClick={() => assignPlayer(selectedPosition, String(player.id))}><strong>{player.name}</strong><small>{assigned || 'Kispad'}</small></button>
+      })}</div>{half.starters[selectedPosition] && <button type="button" onClick={() => saveHalf({ ...half, starters: { ...half.starters, [selectedPosition]: '' }, replacements: { ...half.replacements, [selectedPosition]: '' } })}>{selectedPosition} kiürítése</button>}</div>
+      <div className="mp-assignment"><span className="eyebrow">KIVÁLASZTOTT POSZT</span><h3>{selectedPosition}</h3><label className="mp-starting-select">{halfIndex * 2 + 1}. negyed · kezdő<select value={half.starters[selectedPosition] || ''} onChange={(event) => saveHalf({ ...half, starters: { ...half.starters, [selectedPosition]: event.target.value }, replacements: { ...half.replacements, [selectedPosition]: '' } })}><option value="">Üres poszt</option>{roster.map((player) => <option key={player.id} value={String(player.id)} disabled={Object.entries(half.starters).some(([pos, id]) => pos !== selectedPosition && id === String(player.id))}>{player.name}</option>)}</select></label>
       {!half.changes && <label>{halfIndex * 2 + 2}. negyed · csere<select disabled={!half.starters[selectedPosition]} value={half.replacements[selectedPosition] || ''} onChange={(event) => saveHalf({ ...half, replacements: { ...half.replacements, [selectedPosition]: event.target.value } })}><option value="">Marad a kezdő</option>{roster.filter((player) => String(player.id) !== half.starters[selectedPosition]).map((player) => <option key={player.id} value={String(player.id)} disabled={Object.entries(quarterLineup(half)).some(([pos, id]) => pos !== selectedPosition && id === String(player.id))}>{player.name}</option>)}</select></label>}<p>{half.changes ? 'A cseréket alább, az Időzített cserék résznél szerkesztheted.' : 'A félidő közepén a kijelölt csere áll be.'}</p><p>A két félidő összeállítását külön tervezheted meg.</p></div>
-    </div>
+    </div></div>
     {!half.changes && <div className="mp-benches">{[half.starters, quarterLineup(half)].map((lineup, quarter) => { const bench = roster.filter((player) => !Object.values(lineup).includes(String(player.id))); return <div key={quarter}><h3>{halfIndex * 2 + quarter + 1}. negyed · Kispad ({bench.length})</h3><div className="mp-bench">{bench.map((player) => <span key={player.id}>{player.name}</span>)}{!bench.length && <p>Nincs cserejátékos.</p>}</div></div> })}</div>}
     <SubstitutionSuggestions plan={plan} halves={halves} halfIndex={halfIndex} position={selectedPosition} history={suggestionHistory} update={update} />
     <MatchMinutes plan={plan} halves={halves}  />
